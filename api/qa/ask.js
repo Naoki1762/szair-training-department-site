@@ -1,17 +1,4 @@
 import { createHmac } from "node:crypto";
-import { createReadStream } from "node:fs";
-import { access, readFile } from "node:fs/promises";
-import { createServer } from "node:http";
-import { extname, join, normalize, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const rootDir = resolve(__dirname);
-
-await loadLocalEnv();
-
-const port = Number(process.env.PORT || 3000);
-const host = process.env.HOST || "0.0.0.0";
 
 const demoKnowledge = [
   {
@@ -41,64 +28,24 @@ const demoKnowledge = [
   }
 ];
 
-const mimeTypes = {
-  ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".webp": "image/webp",
-  ".gif": "image/gif",
-  ".svg": "image/svg+xml"
-};
+export default async function handler(req, res) {
+  applyCors(req, res);
 
-createServer(async (req, res) => {
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   try {
-    const url = new URL(req.url || "/", `http://${req.headers.host}`);
-    applyCors(req, res);
-
-    if (req.method === "OPTIONS") {
-      res.writeHead(204);
-      return res.end();
-    }
-
-    if (req.method === "POST" && url.pathname === "/api/qa/ask") {
-      const body = await readJson(req);
-      const result = await answerQuestion(body);
-      await notifyDingTalk(body, result);
-      return sendJson(res, result);
-    }
-
-    if (req.method === "GET" || req.method === "HEAD") {
-      return serveStatic(url.pathname, res, req.method === "HEAD");
-    }
-
-    sendJson(res, { error: "Method not allowed" }, 405);
+    const result = await answerQuestion(req.body || {});
+    await notifyDingTalk(req.body || {}, result);
+    return res.status(200).json(result);
   } catch (error) {
     console.error(error);
-    sendJson(res, { error: "Server error" }, 500);
-  }
-}).listen(port, host, () => {
-  console.log(`Training portal running at http://${host}:${port}`);
-});
-
-async function loadLocalEnv() {
-  try {
-    const envPath = join(rootDir, ".env");
-    const text = await readFile(envPath, "utf8");
-    for (const line of text.split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const match = trimmed.match(/^([^=]+)=(.*)$/);
-      if (!match) continue;
-      const key = match[1].trim();
-      const value = match[2].trim().replace(/^["']|["']$/g, "");
-      if (!process.env[key]) process.env[key] = value;
-    }
-  } catch {
-    // .env is optional.
+    return res.status(500).json({ error: "Server error" });
   }
 }
 
@@ -197,6 +144,42 @@ async function askIma(question, body) {
   return { answer, sources };
 }
 
+async function askDify(question, body) {
+  const endpoint = process.env.DIFY_API_URL || "https://api.dify.ai/v1/chat-messages";
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.DIFY_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      inputs: {
+        role: body.role || "",
+        page: body.page || ""
+      },
+      query: question,
+      response_mode: "blocking",
+      user: body.user || "training-portal-user"
+    })
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Dify request failed: ${response.status} ${text}`);
+  }
+
+  const data = await response.json();
+  const sources = (data.metadata?.retriever_resources || [])
+    .map(item => item.document_name || item.dataset_name)
+    .filter(Boolean)
+    .slice(0, 3);
+
+  return {
+    answer: data.answer || "知识库没有返回明确答案。",
+    sources
+  };
+}
+
 function hasDingTalkAssistantConfig() {
   return process.env.DINGTALK_ASSISTANT_ID
     && process.env.DINGTALK_CLIENT_ID
@@ -206,8 +189,7 @@ function hasDingTalkAssistantConfig() {
 async function askDingTalkAssistant(question, body) {
   const accessToken = await getDingTalkAccessToken();
   const robotAppKey = process.env.DINGTALK_ROBOT_APP_KEY || process.env.DINGTALK_ASSISTANT_ID;
-  const apiUrl = buildDingMiAskRobotUrl();
-  const response = await fetch(apiUrl, {
+  const response = await fetch(buildDingMiAskRobotUrl(), {
     method: "POST",
     headers: {
       "x-acs-dingtalk-access-token": accessToken,
@@ -246,8 +228,7 @@ async function askDingTalkAssistant(question, body) {
 function buildDingMiAskRobotUrl() {
   const baseUrl = (process.env.DINGTALK_SMART_QA_BASE_URL || "https://api.dingtalk.com").replace(/\/$/, "");
   const path = process.env.DINGTALK_SMART_QA_PATH || "/v1.0/dingmi/robots/ask";
-  const url = new URL(`${baseUrl}${path.startsWith("/") ? path : `/${path}`}`);
-  return url.toString();
+  return `${baseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 function extractDingTalkAnswer(data) {
@@ -282,42 +263,6 @@ async function getDingTalkAccessToken() {
     throw new Error("DingTalk token response did not include accessToken");
   }
   return data.accessToken;
-}
-
-async function askDify(question, body) {
-  const endpoint = process.env.DIFY_API_URL || "https://api.dify.ai/v1/chat-messages";
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.DIFY_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      inputs: {
-        role: body.role || "",
-        page: body.page || ""
-      },
-      query: question,
-      response_mode: "blocking",
-      user: body.user || "training-portal-user"
-    })
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Dify request failed: ${response.status} ${text}`);
-  }
-
-  const data = await response.json();
-  const sources = (data.metadata?.retriever_resources || [])
-    .map(item => item.document_name || item.dataset_name)
-    .filter(Boolean)
-    .slice(0, 3);
-
-  return {
-    answer: data.answer || "知识库没有返回明确答案。",
-    sources
-  };
 }
 
 async function askGenericKnowledgeApi(question, body) {
@@ -375,8 +320,7 @@ async function notifyDingTalk(body, result) {
     `**答案：** ${result.answer || ""}`
   ].join("\n");
 
-  const url = buildDingTalkUrl();
-  const response = await fetch(url, {
+  const response = await fetch(buildDingTalkWebhookUrl(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -391,7 +335,7 @@ async function notifyDingTalk(body, result) {
   }
 }
 
-function buildDingTalkUrl() {
+function buildDingTalkWebhookUrl() {
   if (!process.env.DINGTALK_SECRET) {
     return process.env.DINGTALK_WEBHOOK;
   }
@@ -405,67 +349,15 @@ function buildDingTalkUrl() {
   return `${process.env.DINGTALK_WEBHOOK}&timestamp=${timestamp}&sign=${sign}`;
 }
 
-function readJson(req) {
-  return new Promise((resolveJson, reject) => {
-    let raw = "";
-    req.on("data", chunk => {
-      raw += chunk;
-      if (raw.length > 1024 * 1024) {
-        req.destroy();
-        reject(new Error("Request body too large"));
-      }
-    });
-    req.on("end", () => {
-      try {
-        resolveJson(raw ? JSON.parse(raw) : {});
-      } catch (error) {
-        reject(error);
-      }
-    });
-    req.on("error", reject);
-  });
-}
-
-async function serveStatic(pathname, res, headOnly = false) {
-  const requestedPath = pathname === "/" ? "/index.html" : decodeURIComponent(pathname);
-  const allowed = requestedPath === "/index.html" || requestedPath.startsWith("/assets/");
-  if (!allowed) {
-    return sendJson(res, { error: "Not found" }, 404);
-  }
-
-  const filePath = normalize(join(rootDir, requestedPath));
-
-  if (!filePath.startsWith(rootDir)) {
-    return sendJson(res, { error: "Forbidden" }, 403);
-  }
-
-  try {
-    await access(filePath);
-    res.writeHead(200, {
-      "Content-Type": mimeTypes[extname(filePath)] || "application/octet-stream"
-    });
-    if (headOnly) return res.end();
-    createReadStream(filePath).pipe(res);
-  } catch {
-    sendJson(res, { error: "Not found" }, 404);
-  }
-}
-
-function sendJson(res, data, status = 200) {
-  res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
-  res.end(JSON.stringify(data));
-}
-
 function applyCors(req, res) {
   const origin = req.headers.origin || "";
-  const allowedOrigins = new Set([
+  const allowedOrigins = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
-    "https://ytewdgujhvdss-cyber.github.io",
-    "null"
-  ]);
+    "https://ytewdgujhvdss-cyber.github.io"
+  ];
 
-  if (allowedOrigins.has(origin) || /^https:\/\/([a-z0-9-]+\.)*dingtalk\.com$/i.test(origin)) {
+  if (allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }

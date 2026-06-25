@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/qa/ask.js": {
+      "maxDuration": 30
+    }
+  }
+}

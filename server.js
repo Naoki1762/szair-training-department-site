@@ -250,21 +250,91 @@ ${context.map(c => `[${c.index}] ${c.title}\n${c.content || "（无摘要）"}`)
 }
 
 function buildNaturalAnswer(question, context) {
+  const titles = context.map(c => c.title);
+
+  // 尝试提取共同主题
+  const themes = inferThemes(titles);
+  const hasContent = context.some(c => c.content);
+
+  if (!hasContent) {
+    // 没有高亮片段时，根据标题生成主题式总结
+    let intro = `关于"${question}"，我在知识库中找到了一些相关资料。`;
+    if (themes.length > 0) {
+      intro += `主要涉及${themes.join("、")}等方面。`;
+    }
+
+    const categorized = categorizeTitles(titles);
+    const lines = [intro, ""];
+    for (const [category, items] of Object.entries(categorized)) {
+      if (items.length > 0) {
+        lines.push(`**${category}**：${items.join("、")}`);
+      }
+    }
+    lines.push("", "由于这些资料以 PDF/Word 文档为主，暂时没有提取到具体段落摘要。如果你需要了解某个具体文件的内容，可以告诉我文件名或更具体的问题。");
+    return lines.join("\n");
+  }
+
+  // 有高亮片段时，按段落组织
   const mainPoints = context
     .filter(c => c.content)
     .map((c, idx) => {
       const text = c.content.length > 180 ? c.content.slice(0, 180) + "……" : c.content;
-      return `${idx + 1}. ${c.title}：${text}`;
+      return `${idx + 1}. **${c.title}**：${text}`;
     });
-
-  if (mainPoints.length === 0) {
-    return `关于"${question}"，我在知识库中找到了以下相关文档，但暂时缺少具体摘要内容：\n\n`
-      + context.map(c => `• ${c.title}`).join("\n");
-  }
 
   return `关于"${question}"，我在知识库中找到了相关资料，总结如下：\n\n`
     + mainPoints.join("\n\n")
     + "\n\n如需更详细的说明，可以告诉我具体想深入了解哪一部分。";
+}
+
+function inferThemes(titles) {
+  const keywords = [
+    { keys: ["飞行", "运行", "机组"], theme: "飞行运行与机组操作" },
+    { keys: ["安全", "通告", "风险"], theme: "安全管理与风险通告" },
+    { keys: ["课件", "培训", "教学", "教材"], theme: "培训教学与课件资料" },
+    { keys: ["手册", "程序", "规范"], theme: "运行手册与程序规范" },
+    { keys: ["教员", "资质", "训练"], theme: "教员资质与训练管理" },
+    { keys: ["设备", "模拟机", "机务"], theme: "训练设备与模拟机" }
+  ];
+
+  const matched = new Set();
+  const titleText = titles.join(" ");
+  for (const item of keywords) {
+    if (item.keys.some(k => titleText.includes(k))) {
+      matched.add(item.theme);
+    }
+  }
+  return Array.from(matched).slice(0, 3);
+}
+
+function categorizeTitles(titles) {
+  const rules = [
+    { name: "运行手册与程序", patterns: [/手册/, /程序/, /规范/, /R\d+/] },
+    { name: "安全通告与通报", patterns: [/安全/, /通告/, /通报/, /风险/] },
+    { name: "飞行操作与技术", patterns: [/飞行/, /机组/, /操作/, /机内/, /B737/] },
+    { name: "培训与课件", patterns: [/课件/, /培训/, /教学/, /教材/, /讲义/] },
+    { name: "其他资料", patterns: [/.*/] }
+  ];
+
+  const categorized = { "运行手册与程序": [], "安全通告与通报": [], "飞行操作与技术": [], "培训与课件": [], "其他资料": [] };
+  for (const title of titles) {
+    let assigned = false;
+    for (const rule of rules) {
+      if (rule.name === "其他资料" || rule.patterns.some(p => p.test(title))) {
+        if (rule.name !== "其他资料" || !assigned) {
+          categorized[rule.name].push(title);
+          assigned = true;
+          break;
+        }
+      }
+    }
+  }
+
+  // 删除空类别
+  for (const key of Object.keys(categorized)) {
+    if (categorized[key].length === 0) delete categorized[key];
+  }
+  return categorized;
 }
 
 function hasDingTalkAssistantConfig() {

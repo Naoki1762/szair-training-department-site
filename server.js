@@ -384,13 +384,14 @@ function sendJson(res, data, status = 200) {
 
 function applyCors(req, res) {
   const origin = req.headers.origin || "";
-  const allowedOrigins = [
+  const allowedOrigins = new Set([
     "http://127.0.0.1:3000",
     "http://localhost:3000",
-    "https://ytewdgujhvdss-cyber.github.io"
-  ];
+    "https://ytewdgujhvdss-cyber.github.io",
+    "null"
+  ]);
 
-  if (allowedOrigins.includes(origin)) {
+  if (allowedOrigins.has(origin) || /^https:\/\/([a-z0-9-]+\.)*dingtalk\.com$/i.test(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   }

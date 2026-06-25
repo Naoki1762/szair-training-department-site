@@ -612,6 +612,19 @@ a { color: inherit; }
   padding: 0 12px;
   outline: 0;
 }
+.student-demo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-soft);
+}
+.student-demo span {
+  color: var(--muted);
+  font-size: 13px;
+}
 .student-state {
   display: grid;
   place-items: center;
@@ -627,6 +640,7 @@ a { color: inherit; }
   font-size: 18px;
 }
 .student-table-wrap { overflow-x: auto; }
+.student-table-wrap .table { min-width: 680px; }
 .student-person {
   display: flex;
   align-items: center;
@@ -1020,13 +1034,17 @@ a { color: inherit; }
   .sidebar {
     position: relative;
     height: auto;
+    min-width: 0;
   }
   .nav {
     display: flex;
+    min-width: 0;
+    max-width: 100%;
     overflow-x: auto;
     gap: 8px;
     padding-bottom: 8px;
   }
+  .main { min-width: 0; }
   .nav button {
     min-width: max-content;
     white-space: nowrap;
@@ -1083,6 +1101,11 @@ a { color: inherit; }
   }
   .student-actions .btn { width: 100%; }
   .student-access { grid-template-columns: 1fr; }
+  .student-demo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .student-demo .btn { width: 100%; }
   .qa-launcher {
     right: 14px;
     bottom: 14px;
@@ -1243,6 +1266,10 @@ a { color: inherit; }
                   <input id="studentAccessToken" type="password" autocomplete="current-password" placeholder="访问口令" aria-label="学员名单访问口令">
                   <button class="btn primary" type="submit">进入名单</button>
                 </form>
+                <div class="student-demo">
+                  <span>钉钉接入前可先检查页面功能</span>
+                  <button class="btn" id="studentDemo" type="button">加载 300 人测试名单</button>
+                </div>
               </div>
             </div>
             <div class="hidden" id="studentListPanel">
@@ -1598,6 +1625,7 @@ let qaStarted = false;
 let qaBusy = false;
 let students = [];
 let studentsLoaded = false;
+let studentDataMode = "none";
 
 function qs(id) {
   return document.getElementById(id);
@@ -1663,6 +1691,47 @@ function renderStudents() {
   qs("studentEmptyState").classList.toggle("hidden", filtered.length > 0);
 }
 
+function createDemoStudents() {
+  const surnames = [
+    "赵", "钱", "孙", "李", "周", "吴", "郑", "王", "冯", "陈",
+    "褚", "卫", "蒋", "沈", "韩", "杨", "朱", "秦", "许", "何"
+  ];
+  const givenNames = [
+    "宇航", "子轩", "浩然", "嘉诚", "明远",
+    "思源", "俊杰", "博文", "天佑", "景行",
+    "睿哲", "承泽", "泽楷", "致远", "弘毅"
+  ];
+  const titles = ["飞行学员", "航线运输驾驶员学员", "理论训练学员", "模拟机训练学员"];
+
+  return surnames.flatMap((surname, surnameIndex) => (
+    givenNames.map((givenName, givenNameIndex) => {
+      const index = surnameIndex * givenNames.length + givenNameIndex;
+      return {
+        userId: `demo-${String(index + 1).padStart(3, "0")}`,
+        name: `${surname}${givenName}`,
+        title: titles[index % titles.length],
+        jobNumber: `FL${String(2026001 + index)}`,
+        active: (index + 1) % 29 !== 0,
+        avatar: ""
+      };
+    })
+  ));
+}
+
+function loadDemoStudents() {
+  students = createDemoStudents();
+  studentsLoaded = true;
+  studentDataMode = "demo";
+  qs("studentDepartment").textContent = "飞行学员管理室（测试）";
+  qs("studentCount").textContent = String(students.length);
+  qs("studentSyncedAt").textContent = "测试数据";
+  qs("studentAccessPanel").classList.add("hidden");
+  qs("studentListPanel").classList.remove("hidden");
+  qs("studentSearch").value = "";
+  setStudentSyncStatus("测试名单", "red");
+  renderStudents();
+}
+
 async function loadStudents(force = false) {
   const token = sessionStorage.getItem("studentViewToken") || "";
   if (!token) {
@@ -1687,6 +1756,7 @@ async function loadStudents(force = false) {
 
     students = Array.isArray(data.students) ? data.students : [];
     studentsLoaded = true;
+    studentDataMode = "dingtalk";
     qs("studentDepartment").textContent = data.departmentName || "飞行学员管理室";
     qs("studentCount").textContent = String(students.length);
     qs("studentSyncedAt").textContent = data.syncedAt
@@ -1940,7 +2010,14 @@ qs("studentAccessForm").addEventListener("submit", (event) => {
   loadStudents();
 });
 qs("studentSearch").addEventListener("input", renderStudents);
-qs("studentRefresh").addEventListener("click", () => loadStudents(true));
+qs("studentRefresh").addEventListener("click", () => {
+  if (studentDataMode === "demo") {
+    loadDemoStudents();
+    return;
+  }
+  loadStudents(true);
+});
+qs("studentDemo").addEventListener("click", loadDemoStudents);
 
 qs("loginForm").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -1958,6 +2035,7 @@ qs("logout").addEventListener("click", () => {
   sessionStorage.removeItem("studentViewToken");
   students = [];
   studentsLoaded = false;
+  studentDataMode = "none";
   closeQaPanel();
 });
 </script>

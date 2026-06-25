@@ -3,43 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>深圳航空培训部 · 飞行准备网</title>
+<title>深圳航空培训部管理平台</title>
 <style>
-/*
-Design system
-Colors: Shenzhen Airlines red #c92b2b, directory blue #1577ff, text #161a22, muted #8d949e.
-Surface rhythm: login uses real aircraft sky asset; app uses restrained white/blue-gray bands.
-Radii: 8px cards for work surfaces, 14px avatars, pill status badges only for labels.
-Typography: system CJK stack, dense operational sizing, larger mobile contact names from reference images.
-*/
 :root {
-  --sz-red: #c92b2b;
-  --sz-red-dark: #a61f24;
-  --blue: #1577ff;
-  --blue-soft: #e8f2ff;
-  --sky: #f5f8fc;
+  --red: #c92b2b;
+  --red-deep: #9f2125;
+  --blue: #1c64d9;
+  --blue-soft: #eaf2ff;
+  --bg: #f4f7fb;
   --surface: #ffffff;
-  --line: #e8ebf0;
-  --line-soft: #f2f4f7;
   --text: #161a22;
-  --muted: #8d949e;
-  --subtle: #6b7280;
-  --warning: #ff8a00;
-  --green: #18a36a;
-  --shadow: 0 14px 40px rgba(22, 30, 46, .08);
-  --sidebar: 252px;
-  --radius: 8px;
+  --muted: #7c8593;
+  --line: #e7ebf1;
+  --line-soft: #f0f3f7;
+  --green: #18885d;
+  --shadow: 0 18px 42px rgba(17, 24, 39, .08);
+  --sidebar: 248px;
+  --radius: 12px;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--text);
-  background: var(--sky);
+  background: var(--bg);
   -webkit-font-smoothing: antialiased;
 }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
 .hidden { display: none !important; }
 
 .login {
@@ -47,101 +40,126 @@ button { cursor: pointer; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  background: url("assets/login-scene-bg.png") center / cover no-repeat;
-  position: relative;
-  overflow: hidden;
-}
-.login::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgba(9, 21, 38, .14);
-  pointer-events: none;
+  padding: 24px;
+  background:
+    linear-gradient(rgba(7, 18, 32, .42), rgba(7, 18, 32, .42)),
+    url("assets/login-scene-bg.png") center / cover no-repeat;
 }
 .login-shell {
-  width: min(1440px, 100%);
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-  display: flex;
+  width: min(1220px, 100%);
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 28px;
   align-items: center;
-  justify-content: center;
 }
-.login-composite {
-  position: relative;
-  width: min(1360px, 100%);
-  min-height: 100vh;
+.login-copy {
+  color: white;
+  padding: 24px 6px;
 }
-.login-shot-left {
-  position: absolute;
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 760;
+  letter-spacing: .12em;
+}
+.login-copy .eyebrow {
+  border: 1px solid rgba(255,255,255,.24);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.92);
+}
+.login-copy h1 {
+  margin: 18px 0 14px;
+  font-size: clamp(42px, 5vw, 72px);
+  line-height: 1.03;
+  letter-spacing: 0;
+}
+.login-copy p {
+  margin: 0;
+  max-width: 660px;
+  color: rgba(255,255,255,.84);
+  font-size: 17px;
+  line-height: 1.85;
+}
+.login-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 28px;
+}
+.login-stat {
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(9, 21, 37, .32);
+  border: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(10px);
+}
+.login-stat strong {
   display: block;
-  max-width: none;
-  user-select: none;
-  -webkit-user-drag: none;
+  margin-bottom: 8px;
+  font-size: 28px;
 }
-.login-shot-left {
-  left: 5.5%;
-  top: 16.5%;
-  width: min(43vw, 700px);
+.login-stat span {
+  color: rgba(255,255,255,.76);
+  font-size: 13px;
 }
 .login-card {
-  position: absolute;
-  right: 7.8%;
-  top: 14.5%;
-  z-index: 2;
-  width: min(31vw, 520px);
-  min-width: 420px;
-  padding: 40px 30px 28px;
-  border-radius: 24px;
-  border: 1px solid rgba(255,255,255,.72);
+  padding: 34px 28px 24px;
+  border-radius: 26px;
   background: rgba(255,255,255,.96);
-  box-shadow: 0 28px 56px rgba(15, 28, 46, .18);
-  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,.76);
+  box-shadow: 0 26px 54px rgba(15, 28, 46, .18);
+  backdrop-filter: blur(14px);
 }
-.login-mark {
+.brand {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
 }
 .phoenix {
-  width: 30px;
-  height: 30px;
-  display: inline-grid;
-  place-items: center;
-  color: var(--sz-red);
+  width: 28px;
+  height: 28px;
+  color: var(--red);
+  position: relative;
   transform: rotate(-18deg);
 }
 .phoenix::before {
   content: "";
-  width: 26px;
-  height: 18px;
+  position: absolute;
+  inset: 3px 0 3px 0;
   background: currentColor;
-  clip-path: polygon(0 64%, 44% 0, 100% 18%, 56% 42%, 82% 100%, 38% 62%, 10% 100%);
+  clip-path: polygon(0 65%, 43% 0, 100% 18%, 56% 42%, 82% 100%, 37% 62%, 10% 100%);
 }
-.login-title {
-  font-size: clamp(22px, 1.9vw, 28px);
-  font-weight: 780;
-  letter-spacing: .02em;
+.brand h2 {
+  margin: 0;
+  font-size: 25px;
+  letter-spacing: 0;
 }
-.login-subtitle {
-  margin: 10px 0 28px;
+.brand-sub {
+  margin: 10px 0 26px;
   text-align: center;
-  color: #7d8697;
+  color: #8a93a4;
   font-size: 12px;
   letter-spacing: .12em;
 }
 .field {
-  height: 64px;
   display: grid;
-  grid-template-columns: 44px 1fr;
+  grid-template-columns: 42px 1fr;
   align-items: center;
-  padding: 0 18px;
-  margin-bottom: 18px;
+  height: 60px;
+  padding: 0 16px;
+  margin-bottom: 16px;
   border-radius: 18px;
-  border: 1px solid #d9e2f0;
-  background: #edf3ff;
+  border: 1px solid #d8e1ee;
+  background: #eef4ff;
+}
+.field span {
+  color: #b4bdca;
+  font-size: 20px;
 }
 .field input,
 .field select {
@@ -150,443 +168,347 @@ button { cursor: pointer; }
   outline: 0;
   background: transparent;
   color: var(--text);
-  font-size: clamp(16px, 1.2vw, 18px);
-}
-.field-icon {
-  color: #b2bac8;
-  font-size: 22px;
-  line-height: 1;
+  font-size: 17px;
 }
 .login-links {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin: 8px 0 24px;
+  margin: 4px 0 22px;
 }
 .login-links a {
-  color: #57a1ff;
+  color: #4d99ff;
   text-decoration: none;
-  font-size: 14px;
   font-weight: 700;
+  font-size: 14px;
 }
-.login-submit {
+.submit {
   width: 100%;
   height: 56px;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #d43d37, #f06e68);
+  background: linear-gradient(90deg, #d83b35, #f06a63);
   color: white;
-  font-size: 16px;
-  font-weight: 780;
-  box-shadow: 0 12px 24px rgba(221, 82, 78, .28);
+  font-size: 17px;
+  font-weight: 800;
+  box-shadow: 0 14px 28px rgba(221, 82, 78, .26);
 }
-.portal-note {
-  margin-top: 24px;
+.login-note {
+  margin-top: 22px;
   text-align: center;
   color: #667081;
-  font-size: 14px;
   font-weight: 700;
 }
 
-.app { min-height: 100vh; display: grid; grid-template-columns: var(--sidebar) 1fr; }
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar) 1fr;
+}
 .sidebar {
-  background: #101722;
-  color: white;
-  padding: 24px 16px;
   position: sticky;
   top: 0;
   height: 100vh;
+  padding: 20px 16px;
+  background: #0f1724;
+  color: white;
   display: flex;
   flex-direction: column;
 }
-.side-head { display: flex; align-items: center; gap: 10px; padding: 0 8px 22px; border-bottom: 1px solid rgba(255,255,255,.08); }
-.side-head .phoenix { color: #ef4747; }
-.side-title { font-weight: 760; line-height: 1.2; }
-.side-title small { display: block; color: rgba(255,255,255,.45); font-size: 11px; letter-spacing: .1em; margin-top: 4px; }
-.nav { padding: 18px 0; flex: 1; }
-.nav button {
-  width: 100%;
-  min-height: 44px;
+.side-head {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 6px 8px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.side-title {
+  font-weight: 760;
+  line-height: 1.2;
+}
+.side-title small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(255,255,255,.45);
+  font-size: 11px;
+  letter-spacing: .12em;
+}
+.nav {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+  padding: 18px 0;
+}
+.nav button {
+  min-height: 44px;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: 10px;
   background: transparent;
-  color: rgba(255,255,255,.64);
+  color: rgba(255,255,255,.7);
+  display: flex;
+  align-items: center;
+  gap: 10px;
   text-align: left;
   padding: 0 12px;
-  margin-bottom: 4px;
 }
-.nav button.active, .nav button:hover { background: rgba(255,255,255,.08); color: white; }
-.nav button.active { box-shadow: inset 3px 0 0 var(--sz-red); }
-.nav small { margin-left: auto; background: var(--sz-red); color: white; border-radius: 99px; padding: 1px 7px; font-size: 11px; }
-.side-user { border-top: 1px solid rgba(255,255,255,.08); padding-top: 16px; }
-.side-user-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-.mini-avatar, .avatar {
-  flex: 0 0 auto;
+.nav button:hover,
+.nav button.active {
+  background: rgba(255,255,255,.08);
+  color: white;
+}
+.nav button.active {
+  box-shadow: inset 3px 0 0 var(--red);
+}
+.nav em {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--red);
+  font-size: 11px;
+  font-style: normal;
+}
+.side-user {
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.side-user-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.mini-avatar,
+.avatar {
   display: grid;
   place-items: center;
-  background: var(--blue-soft);
-  color: var(--blue);
-  font-weight: 760;
+  flex: 0 0 auto;
+  font-weight: 800;
   overflow: hidden;
 }
-.mini-avatar { width: 36px; height: 36px; border-radius: 10px; }
-.avatar { width: 52px; height: 52px; border-radius: 14px; font-size: 20px; }
+.mini-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.12);
+  color: white;
+}
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 20px;
+}
 .logout {
   width: 100%;
   height: 38px;
   border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
   background: rgba(255,255,255,.04);
-  color: rgba(255,255,255,.7);
-  border-radius: var(--radius);
+  color: rgba(255,255,255,.82);
 }
-
 .main { min-width: 0; }
 .topbar {
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 30px;
-  background: rgba(255,255,255,.86);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
   z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 66px;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.9);
+  backdrop-filter: blur(12px);
 }
-.topbar h1 { margin: 0; font-size: 18px; }
-.topbar time { color: var(--subtle); font-size: 13px; }
-.content { padding: 26px 30px 36px; }
+.topbar h1 { margin: 0; font-size: 19px; }
+.topbar time { color: var(--muted); font-size: 13px; }
+.content { padding: 24px 28px 34px; }
 .page { display: none; }
 .page.active { display: block; animation: fade .18s ease-out; }
-@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
 
-.hero-strip {
-  display: grid;
-  grid-template-columns: 1.35fr .65fr;
-  gap: 18px;
-  margin-bottom: 18px;
-}
-.hero-carousel {
+.hero {
   position: relative;
-  min-height: 420px;
+  min-height: 368px;
+  padding: 34px;
+  border-radius: 18px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.14);
-  border-radius: 14px;
-  background: #0f223c;
-  box-shadow: 0 22px 48px rgba(16, 24, 40, .12);
+  color: white;
+  background:
+    linear-gradient(rgba(7, 18, 32, .54), rgba(7, 18, 32, .54)),
+    url("assets/login-scene-bg.png") center / cover no-repeat;
+  box-shadow: var(--shadow);
 }
-.hero-slide {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transform: scale(1.02);
-  transition: opacity .45s ease, transform .8s ease;
-  pointer-events: none;
-}
-.hero-slide.active {
-  opacity: 1;
-  transform: scale(1);
-}
-.hero-slide::before {
+.hero::after {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(90deg, rgba(10, 27, 46, .34) 0%, rgba(12, 29, 49, .16) 38%, rgba(8, 21, 36, .08) 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, .06) 0%, rgba(255, 255, 255, 0) 32%, rgba(7, 18, 31, .08) 100%);
+  background: linear-gradient(90deg, rgba(10, 23, 40, .66) 0%, rgba(10, 23, 40, .24) 58%, rgba(10, 23, 40, .10) 100%);
 }
-.hero-slide.is-dark::before {
-  background:
-    linear-gradient(90deg, rgba(8, 20, 36, .48) 0%, rgba(10, 24, 42, .3) 40%, rgba(8, 18, 32, .16) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, .12) 0%, rgba(0, 0, 0, .06) 42%, rgba(0, 0, 0, .14) 100%);
+.hero > * {
+  position: relative;
+  z-index: 1;
 }
-.hero-slide img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: brightness(.96) contrast(1.08) saturate(1.04);
+.hero .eyebrow {
+  color: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.08);
 }
-.hero-slide.is-dark img {
-  filter: brightness(.82) contrast(1.1) saturate(1.02);
-}
-.hero-minimal-copy {
-  position: absolute;
-  left: 34px;
-  bottom: 30px;
-  z-index: 2;
-  color: white;
-}
-.hero-minimal-copy h2 {
-  margin: 0;
-  font-size: clamp(30px, 3.3vw, 48px);
-  line-height: 1.06;
+.hero h2 {
+  margin: 18px 0 14px;
+  font-size: clamp(34px, 4vw, 58px);
+  line-height: 1.04;
   letter-spacing: 0;
-  text-shadow: 0 6px 20px rgba(5, 14, 26, .28);
 }
-.hero-dots {
-  position: absolute;
-  right: 24px;
-  bottom: 24px;
-  z-index: 2;
-  display: flex;
-  gap: 8px;
+.hero p {
+  margin: 0;
+  max-width: 740px;
+  color: rgba(255,255,255,.84);
+  line-height: 1.85;
+  font-size: 17px;
 }
-.hero-dots button {
-  width: 12px;
-  height: 12px;
-  border: 0;
-  border-radius: 999px;
-  background: rgba(255,255,255,.36);
-  padding: 0;
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 26px;
 }
-.hero-dots button.active {
-  width: 34px;
-  background: white;
+.hero-stat {
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(9, 21, 37, .42);
+  border: 1px solid rgba(255,255,255,.10);
 }
-.work-panel, .card {
+.hero-stat strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 28px;
+}
+.hero-stat span {
+  color: rgba(255,255,255,.74);
+  font-size: 13px;
+}
+
+.section-stack {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+.grid-2,
+.grid-3,
+.grid-4,
+.metric-grid,
+.resource-grid,
+.portrait-grid,
+.dashboard-links {
+  display: grid;
+  gap: 18px;
+}
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.metric-grid { grid-template-columns: repeat(6, 1fr); }
+.resource-grid { grid-template-columns: repeat(3, 1fr); }
+.portrait-grid { grid-template-columns: repeat(3, 1fr); }
+.dashboard-links { grid-template-columns: repeat(3, 1fr); }
+
+.card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: 0 1px 0 rgba(16, 24, 40, .02);
+  box-shadow: 0 1px 0 rgba(17, 24, 39, .02);
 }
-.work-panel {
-  padding: 24px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
-  min-height: 170px;
+.card-head {
+  min-height: 56px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line-soft);
 }
-.eyebrow { color: var(--sz-red); font-size: 13px; font-weight: 760; letter-spacing: .08em; }
-.work-panel h2 { margin: 8px 0 10px; font-size: clamp(25px, 3vw, 38px); line-height: 1.12; letter-spacing: 0; }
-.work-panel p { margin: 0; color: var(--subtle); max-width: 620px; }
-.quick-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.stat { padding: 18px; background: white; border: 1px solid var(--line); border-radius: var(--radius); }
-.stat b { font-size: 28px; display: block; line-height: 1; }
-.stat span { color: var(--subtle); font-size: 13px; }
-.card-head { min-height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border-bottom: 1px solid var(--line-soft); }
-.card-head h3 { margin: 0; font-size: 16px; }
+.card-head h3 {
+  margin: 0;
+  font-size: 16px;
+}
 .card-body { padding: 18px; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.todo { display: grid; grid-template-columns: 10px 1fr auto; gap: 12px; align-items: start; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
-.todo:last-child { border-bottom: 0; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); margin-top: 8px; }
-.dot.red { background: var(--sz-red); }
-.dot.green { background: var(--green); }
-.todo strong { display: block; }
-.todo span, .todo time { color: var(--muted); font-size: 13px; }
-
-.directory-layout {
-  display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
-  gap: 18px;
-}
-.phone {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  overflow: hidden;
-  min-height: 680px;
-}
-.phone-toolbar {
-  height: 58px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 16px;
-  border-bottom: 1px solid var(--line-soft);
-}
-.search { flex: 1; height: 36px; border: 0; border-radius: 7px; background: #f3f6fa; padding: 0 12px; outline: 0; }
-.tabbar { display: grid; grid-template-columns: repeat(2, 1fr); border-bottom: 1px solid var(--line-soft); }
-.tabbar button { height: 44px; border: 0; background: white; color: var(--subtle); font-weight: 700; }
-.tabbar button.active { color: var(--blue); box-shadow: inset 0 -2px 0 var(--blue); }
-.list { padding: 10px 0; }
-.dept-row, .person-row {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  min-height: 94px;
-  padding: 12px 20px;
-  border: 0;
-  background: white;
-  width: 100%;
-  text-align: left;
-}
-.dept-row:hover, .person-row:hover, .person-row.selected { background: #f4f4f5; }
-.folder {
-  width: 64px; height: 64px; border-radius: 14px; background: #eef9ff; display: grid; place-items: center; color: #66c7ef; font-size: 34px;
-}
-.dept-title, .person-name { font-size: 21px; font-weight: 780; letter-spacing: 0; }
-.dept-count, .person-role { color: var(--muted); font-size: 17px; margin-left: 6px; font-weight: 500; }
-.person-role { display: block; margin: 2px 0 0; }
-.name-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 26px;
-  padding: 0 10px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 650;
-  border: 1px solid currentColor;
-}
-.badge.manager { color: var(--warning); background: #fffaf3; }
-.status { color: var(--muted); font-size: 17px; }
-.detail {
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  min-width: 0;
-}
-.detail-hero {
-  padding: 26px;
-  display: flex;
-  gap: 18px;
-  align-items: center;
-  border-bottom: 1px solid var(--line-soft);
-}
-.detail-hero h2 { margin: 0; font-size: 30px; line-height: 1.15; }
-.detail-hero p { margin: 6px 0 0; color: var(--subtle); }
-.detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 18px; }
-.info-box { background: #f8fafc; border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 16px; }
-.info-box span { display: block; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
-.info-box b { font-size: 18px; }
-.table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.table th { text-align: left; color: var(--subtle); background: #f8fafc; padding: 13px 16px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-.table td { padding: 14px 16px; border-bottom: 1px solid var(--line-soft); }
-.table a { color: var(--blue); text-decoration: none; font-weight: 700; }
-.pill { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 700; background: var(--blue-soft); color: #1265ce; }
-.pill.red { background: #fff0f0; color: var(--sz-red); }
-.pill.green { background: #eaf8f1; color: var(--green); }
 .btn {
   min-height: 36px;
-  border-radius: 7px;
   border: 1px solid var(--line);
+  border-radius: 9px;
   background: white;
   color: var(--text);
   padding: 0 14px;
   font-weight: 700;
 }
-.btn.primary { background: var(--sz-red); border-color: var(--sz-red); color: white; }
-.filter { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-.filter input, .filter select { height: 38px; border: 1px solid var(--line); border-radius: 7px; padding: 0 12px; background: white; outline: 0; }
-.course-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.course { background: white; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-.course-top { height: 92px; display: flex; align-items: center; justify-content: space-between; padding: 18px; color: white; background: linear-gradient(135deg, var(--sz-red), #df6861); }
-.course-top.blue { background: linear-gradient(135deg, #176fe5, #67a9ff); }
-.course-top.gold { background: linear-gradient(135deg, #bd8427, #e5bd63); }
-.course-top.green { background: linear-gradient(135deg, #16875a, #5cc291); }
-.course-body { padding: 16px; }
-.course h3 { margin: 0 0 10px; font-size: 17px; }
-.course p { margin: 0; color: var(--subtle); font-size: 13px; }
-.progress { height: 7px; background: #eef1f5; border-radius: 99px; overflow: hidden; margin-top: 14px; }
-.progress i { display: block; height: 100%; background: var(--blue); border-radius: inherit; }
-.stage-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.stage-card { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: white; }
-.stage-no { display: inline-flex; min-width: 28px; height: 28px; padding: 0 8px; align-items: center; justify-content: center; border-radius: 99px; background: #fff3f2; color: var(--sz-red); font-weight: 800; margin-bottom: 10px; }
-.stage-card h4, .lane h4, .scenario-card h4 { margin: 0 0 8px; font-size: 16px; }
-.stage-card p, .scenario-card p { margin: 0; color: var(--subtle); font-size: 13px; line-height: 1.6; }
-.section-stack { display: grid; gap: 18px; }
-.lane-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-.lane { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: white; }
-.lane ul { margin: 0; padding-left: 18px; color: var(--subtle); }
-.lane li { margin: 6px 0; }
-.scenario-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-.scenario-card { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(180deg, #fff 0%, #fafcff 100%); }
-.scenario-card strong { display: block; margin-bottom: 10px; font-size: 14px; }
-.target-band { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.target-card { padding: 20px; border-radius: var(--radius); border: 1px solid var(--line); background: white; }
-.target-card b { display: block; margin-bottom: 8px; font-size: 20px; }
-.muted-list { margin: 0; padding-left: 18px; color: var(--subtle); }
-.portal-tiles {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+.btn.primary {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
 }
-.portal-tile {
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: linear-gradient(180deg, #fff 0%, #f9fbff 100%);
+.pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 800;
 }
-.portal-tile h4 { margin: 0 0 8px; font-size: 17px; }
-.portal-tile p { margin: 0; color: var(--subtle); font-size: 13px; line-height: 1.6; }
-.ops-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-.ops-card {
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
-}
-.ops-card b {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 18px;
-}
-.ops-card p {
-  margin: 0;
-  color: var(--subtle);
-  font-size: 13px;
-  line-height: 1.6;
-}
-.metric-strip {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
-}
-.metric-box {
+.pill.red { background: #fff1f1; color: var(--red); }
+.pill.green { background: #ebf8f0; color: var(--green); }
+
+.metric {
   padding: 16px;
+  border-radius: 12px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
   background: white;
 }
-.metric-box strong {
+.metric strong {
   display: block;
   margin-bottom: 6px;
   font-size: 24px;
 }
-.metric-box span {
-  color: var(--subtle);
+.metric span {
+  color: var(--muted);
   font-size: 13px;
 }
-.split-grid {
-  display: grid;
-  grid-template-columns: 1.1fr .9fr;
-  gap: 18px;
+.intro-copy {
+  color: var(--muted);
+  line-height: 1.9;
+  font-size: 14px;
 }
-.process-list {
+.list-stack {
   display: grid;
   gap: 12px;
 }
-.process-row {
+.list-row {
   display: grid;
   grid-template-columns: 96px 1fr auto;
-  align-items: center;
   gap: 14px;
+  align-items: center;
   padding: 16px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: white;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff 0%, #fbfcff 100%);
 }
-.process-row b {
+.list-row b {
   display: block;
   margin-bottom: 4px;
   font-size: 16px;
 }
-.process-row p {
+.list-row p {
   margin: 0;
-  color: var(--subtle);
+  color: var(--muted);
   font-size: 13px;
+  line-height: 1.7;
 }
-.process-tag {
+.tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -594,37 +516,49 @@ button { cursor: pointer; }
   padding: 0 12px;
   border-radius: 999px;
   background: #fff3f2;
-  color: var(--sz-red);
+  color: var(--red);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: 800;
 }
-.ai-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-.ai-card {
+.feature-card {
   padding: 18px;
+  border-radius: 12px;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
   background: linear-gradient(180deg, #fff 0%, #f9fbff 100%);
 }
-.ai-card h4 {
+.feature-card h4 {
   margin: 0 0 8px;
-  font-size: 17px;
+  font-size: 18px;
 }
-.ai-card p {
-  margin: 0 0 12px;
-  color: var(--subtle);
-  font-size: 13px;
-  line-height: 1.6;
-}
-.ai-card ul {
+.feature-card p {
   margin: 0;
-  padding-left: 18px;
-  color: var(--subtle);
+  color: var(--muted);
+  line-height: 1.75;
+  font-size: 13px;
 }
-.ai-card li { margin: 6px 0; }
+.feature-card ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+.feature-card li { margin: 6px 0; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  padding: 13px 14px;
+  color: var(--muted);
+  background: #f8fafc;
+  border-bottom: 1px solid var(--line);
+}
+.table td {
+  padding: 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+.table tr:last-child td { border-bottom: 0; }
 .mini-table {
   width: 100%;
   border-collapse: collapse;
@@ -636,164 +570,186 @@ button { cursor: pointer; }
 }
 .mini-table td:last-child {
   text-align: right;
-  color: var(--subtle);
+  color: var(--muted);
 }
+.mini-table tr:last-child td { border-bottom: 0; }
 
-@media (max-width: 980px) {
-  .app { grid-template-columns: 1fr; }
-  .sidebar { position: relative; height: auto; }
-  .nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-  .hero-strip, .grid-2, .directory-layout { grid-template-columns: 1fr; }
-  .quick-stats, .course-grid, .detail-grid, .stage-grid, .target-band, .portal-tiles, .ops-grid, .metric-strip { grid-template-columns: repeat(2, 1fr); }
-  .split-grid, .ai-grid { grid-template-columns: 1fr; }
-  .lane-grid, .scenario-grid { grid-template-columns: 1fr; }
+.org-grid {
+  display: grid;
+  grid-template-columns: 1.06fr .94fr;
+  gap: 18px;
 }
-@media (max-width: 768px) {
-  .login {
-    padding: 24px 16px;
-    align-items: stretch;
-  }
-  .login::before {
-    background: rgba(9, 21, 38, .28);
-  }
+.org-tree,
+.resource-stacks {
+  display: grid;
+  gap: 14px;
+}
+.org-card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+}
+.org-card h4 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.org-children {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.org-children span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+}
+.photo-strip {
+  min-height: 180px;
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba(10, 23, 40, .22), rgba(10, 23, 40, .22)),
+    url("IMG20260624160017.jpg") center / cover no-repeat;
+}
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.photo-card {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: white;
+}
+.photo-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+.photo-card div {
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.roadmap {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.stage {
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: white;
+}
+.stage strong {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  margin-bottom: 12px;
+  background: #fff2f1;
+  color: var(--red);
+}
+.stage h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.stage p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.8;
+  font-size: 14px;
+}
+.stage ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+.stage li { margin: 6px 0; }
+
+@media (max-width: 1080px) {
   .login-shell,
-  .login-composite {
-    width: 100%;
-    min-height: auto;
+  .grid-2,
+  .org-grid {
+    grid-template-columns: 1fr;
   }
-  .login-shot-left {
-    display: none;
+  .login-stats,
+  .hero-stats,
+  .grid-3,
+  .grid-4,
+  .metric-grid,
+  .resource-grid,
+  .portrait-grid,
+  .dashboard-links,
+  .roadmap,
+  .photo-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .login-card {
-    position: relative;
-    right: auto;
-    top: auto;
-    margin: auto;
-    width: min(100%, 440px);
-    min-width: 0;
-    padding: 28px 18px 22px;
-    border-radius: 20px;
-  }
-  .login-title { font-size: 24px; }
-  .field {
-    height: 58px;
-    grid-template-columns: 38px 1fr;
-    padding: 0 14px;
-    margin-bottom: 14px;
-    border-radius: 16px;
-  }
-  .field-icon { font-size: 18px; }
-  .login-links a, .portal-note { font-size: 13px; }
+}
+@media (max-width: 820px) {
+  .app { grid-template-columns: 1fr; }
   .sidebar {
-    padding: 14px 12px 12px;
-  }
-  .side-head {
-    padding: 0 4px 14px;
+    position: relative;
+    height: auto;
   }
   .nav {
     display: flex;
-    gap: 8px;
     overflow-x: auto;
-    padding: 12px 0 8px;
-    scrollbar-width: none;
+    gap: 8px;
+    padding-bottom: 8px;
   }
-  .nav::-webkit-scrollbar { display: none; }
   .nav button {
-    flex: 0 0 auto;
     min-width: max-content;
-    padding: 0 14px;
     white-space: nowrap;
   }
-  .side-user { padding-top: 12px; }
   .topbar {
     height: auto;
-    min-height: 58px;
     padding: 12px 16px;
     align-items: flex-start;
     gap: 6px;
     flex-direction: column;
   }
-  .topbar h1 { font-size: 17px; }
-  .topbar time { font-size: 12px; }
   .content { padding: 14px; }
-  .hero-strip { gap: 14px; }
-  .hero-carousel {
-    min-height: 240px;
-    border-radius: 12px;
+  .hero {
+    padding: 20px;
+    min-height: 320px;
   }
-  .hero-minimal-copy {
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
-  }
-  .hero-minimal-copy h2 {
-    font-size: 28px;
-    line-height: 1.08;
-  }
-  .hero-dots {
-    right: 14px;
-    bottom: 14px;
-  }
-  .quick-stats, .course-grid, .detail-grid, .stage-grid, .target-band, .portal-tiles,
-  .lane-grid, .scenario-grid, .grid-2, .ops-grid, .metric-strip, .ai-grid { grid-template-columns: 1fr; }
-  .work-panel { grid-template-columns: 1fr; }
-  .split-grid { grid-template-columns: 1fr; }
-  .detail-hero {
-    padding: 18px;
-    gap: 14px;
-    align-items: flex-start;
-  }
-  .detail-hero h2 { font-size: 24px; }
-  .phone-toolbar {
-    padding: 12px;
-    height: auto;
-    flex-wrap: wrap;
-  }
-  .search { min-width: 0; }
-  .dept-row, .person-row {
-    min-height: 78px;
-    padding: 10px 14px;
-    gap: 12px;
-  }
-  .folder, .avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-  }
-  .dept-title, .person-name { font-size: 18px; }
-  .dept-count, .person-role, .status { font-size: 14px; }
-  .badge {
-    min-height: 24px;
-    font-size: 12px;
-    padding: 0 8px;
-  }
-  .table { font-size: 13px; }
-  .table th, .table td { padding: 10px 12px; }
-}
-@media (max-width: 620px) {
+  .hero h2 { font-size: 34px; }
+  .hero p,
+  .login-copy p { font-size: 15px; }
   .login {
-    padding: 16px 12px;
+    padding: 20px 14px;
+  }
+  .login-copy {
+    padding: 0;
   }
   .login-card {
-    width: 100%;
-    padding: 24px 16px 20px;
-    border-radius: 18px;
+    padding: 28px 18px 22px;
   }
-  .login-title { font-size: 22px; }
-  .content { padding: 12px; }
-  .topbar { padding: 0 16px; }
-  .hero-carousel { min-height: 212px; }
-  .hero-minimal-copy h2 { font-size: 24px; }
-  .phone { min-height: auto; }
-  .dept-row, .person-row { min-height: 72px; padding: 10px 12px; gap: 12px; }
-  .folder, .avatar { width: 46px; height: 46px; }
-  .person-name, .dept-title { font-size: 17px; }
-  .card-head {
-    min-height: 50px;
-    padding: 0 14px;
+  .login-stats,
+  .hero-stats,
+  .grid-3,
+  .grid-4,
+  .metric-grid,
+  .resource-grid,
+  .portrait-grid,
+  .dashboard-links,
+  .roadmap,
+  .photo-grid {
+    grid-template-columns: 1fr;
   }
-  .card-body { padding: 14px; }
-  .process-row {
+  .list-row {
     grid-template-columns: 1fr;
     justify-items: start;
   }
@@ -803,154 +759,219 @@ button { cursor: pointer; }
 <body>
 <section class="login" id="loginPage">
   <div class="login-shell">
-    <div class="login-composite" aria-hidden="true">
-      <img class="login-shot-left" src="assets/login-copy-shot.png" alt="">
+    <div class="login-copy">
+      <span class="eyebrow">TRAINING MANAGEMENT PORTAL</span>
+      <h1>深圳航空培训部<br>管理平台</h1>
+      <p>以培训部为起点，围绕课件标准、教员画像、数字资产和智能化建设，逐步搭建可复制、可扩展的培训管理底座。</p>
+      <div class="login-stats" id="loginStats"></div>
     </div>
     <form class="login-card" id="loginForm">
-      <div class="login-mark">
-        <span class="phoenix" aria-hidden="true"></span>
-        <span class="login-title">深圳航空培训部</span>
-      </div>
-      <div class="login-subtitle">TRAINING MANAGEMENT PORTAL</div>
-      <label class="field"><span class="field-icon">●</span><input id="username" value="a01149" aria-label="账号"></label>
-      <label class="field"><span class="field-icon">□</span><input id="password" type="password" value="password" aria-label="密码"></label>
-      <label class="field"><span class="field-icon">◇</span><select id="role" aria-label="身份"></select></label>
+      <div class="brand"><span class="phoenix"></span><h2>深圳航空培训部</h2></div>
+      <div class="brand-sub">TRAINING MANAGEMENT PORTAL</div>
+      <label class="field"><span>●</span><input id="username" value="a01149" aria-label="账号"></label>
+      <label class="field"><span>□</span><input id="password" type="password" value="password" aria-label="密码"></label>
+      <label class="field"><span>◇</span><select id="role" aria-label="身份"></select></label>
       <div class="login-links"><a href="#">重置密码</a><a href="#">问题反馈</a></div>
-      <button class="login-submit" type="submit">登录</button>
-      <div class="portal-note">飞训中心智慧培训入口</div>
+      <button class="submit" type="submit">登录</button>
+      <div class="login-note">飞训中心智慧培训入口</div>
     </form>
   </div>
 </section>
 
 <section class="app hidden" id="app">
   <aside class="sidebar">
-    <div class="side-head"><span class="phoenix"></span><div class="side-title">深航培训部<small>TRAINING PORTAL</small></div></div>
+    <div class="side-head">
+      <span class="phoenix"></span>
+      <div class="side-title">深航培训部<small>TRAINING PORTAL</small></div>
+    </div>
     <nav class="nav" id="nav"></nav>
     <div class="side-user">
       <div class="side-user-row"><div class="mini-avatar" id="sideAvatar">段</div><div><strong id="sideName">段超</strong><br><small id="sideRole">飞训中心主任</small></div></div>
       <button class="logout" id="logout">退出登录</button>
     </div>
   </aside>
+
   <main class="main">
-    <header class="topbar"><h1 id="pageTitle">工作台</h1><time id="clock"></time></header>
+    <header class="topbar">
+      <h1 id="pageTitle">工作台</h1>
+      <time id="clock"></time>
+    </header>
+
     <div class="content">
       <section class="page active" id="dashboard">
-        <div class="hero-strip">
-          <div class="hero-carousel" id="heroCarousel">
-            <div id="heroSlides"></div>
-            <div class="hero-dots" id="heroDots"></div>
-          </div>
-          <div class="quick-stats">
-            <div class="stat"><b>48</b><span>在授课程</span></div>
-            <div class="stat"><b>390</b><span>组织成员</span></div>
-            <div class="stat"><b>12</b><span>待审批事项</span></div>
-            <div class="stat"><b>87%</b><span>培训完成率</span></div>
-          </div>
+        <div class="hero">
+          <span class="eyebrow">TRAINING DEPARTMENT PLATFORM</span>
+          <h2>从培训部起步的<br>数字化与智能化底座</h2>
+          <p>这版网站结合培训部简介、组织架构、训练设备和领导最新要求，围绕 AI 课件助手、教员全生命周期画像、数字资产沉淀和三步走自动化路径进行建设。</p>
+          <div class="hero-stats" id="heroStats"></div>
         </div>
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-head"><h3>今日待办</h3><span class="pill red">今日重点</span></div>
-            <div class="card-body" id="todoList"></div>
-          </div>
-          <div class="card">
-            <div class="card-head"><h3>三条优先闭环</h3><button class="btn" data-go="aihub">查看 AI 工作台</button></div>
-            <div class="card-body">
-              <table class="table"><tbody id="deptSummary"></tbody></table>
+
+        <div class="section-stack">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>培训部简介</h3><span class="pill red">现场资料已纳入</span></div>
+              <div class="card-body">
+                <div class="intro-copy">深圳航空培训部主要位于深航基地东区 B3 乘务训练大楼和 B5 飞行训练大楼。截至 2022 年 11 月，培训部共有除飞行学员以外的在编教职员工 160 人，其中 17% 为管理干部、15% 为硕士研究生、72% 为中共党员。部门由“三个中心三个科室”组成，承担飞行学员新雇员培训、机长转升类培训、教员转升理论培训和模拟机教学任务，同时覆盖乘务学员初始培训、乘务员年度复训、服务类和应急类培训，以及 PLPEC 考点与驾驶员执照理论考点管理。</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>领导关注重点</h3><span class="pill">本轮建设主线</span></div>
+              <div class="card-body"><div class="list-stack" id="leaderFocus"></div></div>
             </div>
           </div>
-        </div>
-        <div class="card" style="margin-top:18px">
-          <div class="card-head"><h3>P0 建设模块</h3><button class="btn" data-go="courses">课程中心</button></div>
-          <div class="card-body">
-            <div class="portal-tiles" id="targetBand"></div>
+
+          <div class="card">
+            <div class="card-head"><h3>管理层指标概览</h3><button class="btn" data-go="reports">查看数据看板</button></div>
+            <div class="card-body"><div class="metric-grid" id="metricGrid"></div></div>
           </div>
-        </div>
-        <div class="card" style="margin-top:18px">
-          <div class="card-head"><h3>管理层视角</h3><button class="btn" data-go="reports">进入数据看板</button></div>
-          <div class="card-body"><div class="metric-strip" id="metricStrip"></div></div>
+
+          <div class="card">
+            <div class="card-head"><h3>重点模块入口</h3><button class="btn" data-go="roadmap">查看三步走</button></div>
+            <div class="card-body"><div class="dashboard-links" id="dashboardLinks"></div></div>
+          </div>
         </div>
       </section>
 
-      <section class="page" id="courses">
+      <section class="page" id="courseware">
         <div class="section-stack">
           <div class="card">
-            <div class="card-head"><h3>课程中心总览</h3><span class="pill">报名 / 开班 / 复训 / 归档</span></div>
-            <div class="card-body"><div class="ops-grid" id="courseOps"></div></div>
+            <div class="card-head"><h3>AI 课件助手</h3><span class="pill red">统一标准 + 场景化输出</span></div>
+            <div class="card-body"><div class="grid-4" id="coursewareModes"></div></div>
           </div>
-          <div class="card">
-            <div class="card-head"><h3>重点课程池</h3><button class="btn" data-go="approvals">联动审批</button></div>
-            <div class="card-body"><div class="course-grid" id="courseGrid"></div></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="page" id="approvals">
-        <div class="section-stack">
-          <div class="card"><div class="card-head"><h3>待审批报名</h3><button class="btn primary">批量处理</button></div><div class="card-body" style="padding:0"><table class="table"><thead><tr><th>申请人</th><th>科室</th><th>课程</th><th>提交时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="approvalRows"></tbody></table></div></div>
-          <div class="card"><div class="card-head"><h3>审批流分层设计</h3><span class="pill">一事一流程</span></div><div class="card-body"><div class="process-list" id="approvalFlows"></div></div></div>
-        </div>
-      </section>
-
-      <section class="page" id="students">
-        <div class="split-grid">
-          <div class="card">
-            <div class="card-head"><h3>学员管理闭环</h3><span class="pill">报到 / 训练 / 下飞</span></div>
-            <div class="card-body"><div class="process-list" id="studentFlow"></div></div>
-          </div>
-          <div class="card">
-            <div class="card-head"><h3>学员运行台账</h3><button class="btn" data-go="reports">查看指标</button></div>
-            <div class="card-body"><table class="mini-table" id="studentLedger"></table></div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>标准化建设清单</h3><span class="pill">先统一，再生成</span></div>
+              <div class="card-body"><div class="list-stack" id="coursewareChecklist"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>课件场景输出</h3><button class="btn" data-go="assetsCenter">联动数字资产</button></div>
+              <div class="card-body"><div class="grid-3" id="coursewareScenes"></div></div>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="page" id="faculty">
-        <div class="split-grid">
+        <div class="section-stack">
           <div class="card">
-            <div class="card-head"><h3>教员资质管理</h3><span class="pill">证照 / 课程 / 复训</span></div>
-            <div class="card-body"><div class="process-list" id="facultyFlow"></div></div>
+            <div class="card-head"><h3>教员全生命周期画像</h3><span class="pill">资质 / 授权 / 训练 / 风险</span></div>
+            <div class="card-body"><div class="list-stack" id="facultyFlow"></div></div>
           </div>
-          <div class="card">
-            <div class="card-head"><h3>资质风险清单</h3><button class="btn" data-go="aihub">AI 生成提醒</button></div>
-            <div class="card-body"><table class="mini-table" id="facultyLedger"></table></div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>画像维度</h3><span class="pill green">像人，不像名单</span></div>
+              <div class="card-body"><div class="portrait-grid" id="facultyPortrait"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>近期风险提醒</h3><button class="btn" data-go="roadmap">查看建设路线</button></div>
+              <div class="card-body">
+                <table class="table">
+                  <thead><tr><th>事项</th><th>说明</th><th>状态</th></tr></thead>
+                  <tbody id="facultyRisks"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="page" id="directory">
-        <div class="directory-layout">
-          <div class="phone">
-            <div class="phone-toolbar"><input class="search" id="peopleSearch" placeholder="搜索姓名、岗位或状态"><button class="btn" id="clearSearch">清空</button></div>
-            <div class="tabbar"><button class="active" data-dir-tab="dept">组织</button><button data-dir-tab="people">人员</button></div>
-            <div class="list" id="directoryList"></div>
+      <section class="page" id="assetsCenter">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head"><h3>数字资产中心</h3><span class="pill red">模板 / 流程 / 知识 / 版本</span></div>
+            <div class="card-body"><div class="grid-4" id="assetTypes"></div></div>
           </div>
-          <div class="detail" id="personDetail"></div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>核心资产台账</h3><span class="pill">持续沉淀</span></div>
+              <div class="card-body">
+                <table class="table">
+                  <thead><tr><th>资产类型</th><th>内容</th><th>状态</th></tr></thead>
+                  <tbody id="assetLedger"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>可复制工作流</h3><button class="btn" data-go="courseware">回到课件助手</button></div>
+              <div class="card-body"><div class="list-stack" id="assetFlows"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="organization">
+        <div class="org-grid">
+          <div class="card">
+            <div class="card-head"><h3>组织架构</h3><span class="pill red">来自现场照片</span></div>
+            <div class="card-body"><div class="org-tree" id="orgTree"></div></div>
+          </div>
+          <div class="section-stack">
+            <div class="card">
+              <div class="card-head"><h3>组织说明</h3><span class="pill">三个中心三个科室</span></div>
+              <div class="card-body">
+                <div class="intro-copy">培训部体系以上级总经理室为统领，横向覆盖综合业务、综合培训、计划质控三项基础支撑，纵向形成飞行训练中心、乘务训练中心、模拟机维护中心三大业务中心。其中飞行训练中心下设理论、技术、英语教研及飞行学员管理等核心单元，构成当前培训部数字化建设的主要业务载体。</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>当前数字化优先覆盖范围</h3><span class="pill green">先部门，后扩展</span></div>
+              <div class="card-body"><div class="list-stack" id="orgPriority"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="resources">
+        <div class="section-stack">
+          <div class="photo-strip"></div>
+          <div class="photo-grid">
+            <article class="photo-card"><img src="IMG20260624160017.jpg" alt="培训部简介"><div>培训部简介展板，已纳入首页介绍与平台定位。</div></article>
+            <article class="photo-card"><img src="IMG20260624160025.jpg" alt="组织架构图"><div>组织架构图，已拆解为三个中心三个科室的数字化组织视图。</div></article>
+            <article class="photo-card"><img src="IMG20260624160022.jpg" alt="训练设备"><div>训练设备展板，已整理为飞行、乘务和教学空间三类训练资源。</div></article>
+          </div>
+          <div class="resource-grid" id="resourceSummary"></div>
+          <div class="card">
+            <div class="card-head"><h3>训练资源明细</h3><span class="pill red">设备与场景保障能力</span></div>
+            <div class="card-body"><div class="resource-stacks" id="resourceStacks"></div></div>
+          </div>
         </div>
       </section>
 
       <section class="page" id="reports">
         <div class="section-stack">
-          <div class="card"><div class="card-head"><h3>管理驾驶舱</h3><span class="pill green">验收指标</span></div><div class="card-body"><div class="metric-strip" id="reportMetrics"></div></div></div>
+          <div class="card">
+            <div class="card-head"><h3>数据看板</h3><span class="pill green">管理与验收并重</span></div>
+            <div class="card-body"><div class="metric-grid" id="reportMetrics"></div></div>
+          </div>
           <div class="grid-2">
-            <div class="card"><div class="card-head"><h3>问题定位框架</h3><span class="pill green">谁 / 场景 / 困难 / 后果</span></div><div class="card-body" id="reportBars"></div></div>
-            <div class="card"><div class="card-head"><h3>AI 方案切入点</h3><button class="btn" data-go="aihub">进入 AI 工作台</button></div><div class="card-body" id="rankingRows"></div></div>
+            <div class="card">
+              <div class="card-head"><h3>重点观察指标</h3><span class="pill">围绕标准、画像、资产、智能</span></div>
+              <div class="card-body"><div class="grid-3" id="reportFocus"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>近期输出建议</h3><button class="btn" data-go="roadmap">看三步走</button></div>
+              <div class="card-body"><div class="list-stack" id="reportActions"></div></div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="page" id="aihub">
+      <section class="page" id="roadmap">
         <div class="section-stack">
           <div class="card">
-            <div class="card-head"><h3>AI 工作台</h3><span class="pill red">AI 留痕可追溯</span></div>
-            <div class="card-body"><div class="ai-grid" id="aiGrid"></div></div>
+            <div class="card-head"><h3>建设路线</h3><span class="pill red">纸质化 → 数字化 → 智能化</span></div>
+            <div class="card-body"><div class="roadmap" id="roadmapStages"></div></div>
           </div>
-          <div class="card">
-            <div class="card-head"><h3>四阶段推进图</h3><span class="pill">实施路线图</span></div>
-            <div class="card-body"><div class="stage-grid" id="stageGrid"></div></div>
-          </div>
-          <div class="card">
-            <div class="card-head"><h3>中心业务梳理</h3><button class="btn" data-go="directory">关联人员</button></div>
-            <div class="card-body"><div class="lane-grid" id="laneGrid"></div></div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>一期实施重点</h3><span class="pill">先打底</span></div>
+              <div class="card-body"><div class="list-stack" id="phaseOne"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>平台定位</h3><span class="pill green">从部门出发，向更大范围拓展</span></div>
+              <div class="card-body">
+                <div class="intro-copy">网站不再只是部门展示页，而是培训管理平台的一期界面。当前先服务培训部，把课件标准、教员画像、工作流和底层数据沉淀跑通；后续再向飞训中心更大范围扩展，形成统一的培训数字化能力底座。</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -960,393 +981,277 @@ button { cursor: pointer; }
 
 <script>
 const roles = [
-  { id: "duan", name: "段超", role: "飞训中心主任", dept: "飞训中心", avatar: "段" },
-  { id: "zhao", name: "赵禹诚", role: "飞行培训工程师", dept: "技术教研室", avatar: "赵" },
-  { id: "she", name: "佘积林", role: "飞行英语教研室经理", dept: "英语教研室", avatar: "积" },
-  { id: "huang", name: "黄蕾", role: "飞行培训工程师", dept: "技术教研室", avatar: "黄", manager: true },
-  { id: "wang", name: "王逢春", role: "学员管理室经理", dept: "飞行学员管理室", avatar: "王", manager: true },
-  { id: "wu", name: "吴森", role: "考务管理专员", dept: "主任室", avatar: "吴" }
-];
-
-const departments = [
-  { name: "理论教研室", count: 29 },
-  { name: "英语教研室", count: 6 },
-  { name: "技术教研室", count: 4 },
-  { name: "飞行学员管理室", count: 348 },
-  { name: "主任室", count: 3 }
-];
-
-const people = [
-  { name: "段超", role: "飞训中心主任", dept: "飞训中心", avatar: "段", lessons: 14, hours: 112, score: "4.9" },
-  { name: "赵禹诚", role: "飞行培训工程师", dept: "技术教研室", avatar: "赵", manager: true, status: "忙碌中", lessons: 8, hours: 64, score: "4.8" },
-  { name: "丁圆", role: "飞行培训工程师（飞行员）", dept: "技术教研室", avatar: "丁", status: "在家办公中", lessons: 5, hours: 42, score: "4.6" },
-  { name: "黄蕾", role: "飞行培训工程师", dept: "技术教研室", avatar: "黄", manager: true, status: "忙碌中", lessons: 11, hours: 88, score: "4.9" },
-  { name: "殷婷婷", role: "飞行培训工程师", dept: "技术教研室", avatar: "婷", manager: true, lessons: 6, hours: 38, score: "4.7" },
-  { name: "张兴君", role: "飞行培训工程师（飞行员）", dept: "理论教研室", avatar: "兴", lessons: 7, hours: 56, score: "4.5" },
-  { name: "赵坤", role: "飞行培训工程师", dept: "理论教研室", avatar: "赵", manager: true, lessons: 9, hours: 70, score: "4.8" },
-  { name: "黄晓旭", role: "综合业务专员", dept: "飞行学员管理室", avatar: "晓", status: "请假中", lessons: 3, hours: 24, score: "4.4" },
-  { name: "祝伟垚", role: "飞行培训工程师（飞行员）", dept: "理论教研室", avatar: "祝", status: "奋斗中", lessons: 10, hours: 76, score: "4.7" },
-  { name: "冷健", role: "飞行培训工程师（飞行员）", dept: "英语教研室", avatar: "冷", status: "专注一下", lessons: 4, hours: 30, score: "4.3" },
-  { name: "李龙建", role: "飞行培训工程师（飞行员）", dept: "英语教研室", avatar: "李", manager: true, status: "忙碌中", lessons: 8, hours: 61, score: "4.6" },
-  { name: "袁鸣", role: "飞行培训工程师（飞行员）", dept: "英语教研室", avatar: "袁", status: "学习中", lessons: 6, hours: 49, score: "4.5" },
-  { name: "刘思意", role: "飞行英语教员", dept: "英语教研室", avatar: "思", lessons: 7, hours: 53, score: "4.7" },
-  { name: "王佳妮", role: "飞行英语教员", dept: "英语教研室", avatar: "佳", lessons: 6, hours: 44, score: "4.6" },
-  { name: "石蕾蕾", role: "飞行英语教员", dept: "英语教研室", avatar: "蕾", lessons: 5, hours: 36, score: "4.5" },
-  { name: "吴森", role: "考务管理专员", dept: "主任室", avatar: "吴", lessons: 12, hours: 90, score: "4.9" },
-  { name: "桑艳", role: "飞行英语教员", dept: "英语教研室", avatar: "桑", manager: true, lessons: 8, hours: 66, score: "4.8" }
-];
-
-const courses = [
-  { name: "危险品运输安全培训（复训）", teacher: "段超", meta: "8学时 · 32/40人", type: "red", pct: 80 },
-  { name: "B737NG 机型差异培训", teacher: "黄蕾", meta: "24学时 · 18/30人", type: "blue", pct: 60 },
-  { name: "航空英语 ICAO Level 4", teacher: "佘积林", meta: "48学时 · 12/25人", type: "gold", pct: 48 },
-  { name: "CRM 机组资源管理", teacher: "祝伟垚", meta: "16学时 · 22/30人", type: "green", pct: 73 },
-  { name: "应急撤离程序复训", teacher: "赵坤", meta: "12学时 · 26/32人", type: "blue", pct: 81 },
-  { name: "新任班组长管理能力提升", teacher: "王逢春", meta: "16学时 · 25/30人", type: "gold", pct: 83 }
-];
-
-const heroSlides = [
-  { image: "assets/login-scene-bg.png", title: "培训部管理网站", dark: true },
-  { image: "assets/training-dept-slide.png" },
-  { image: "assets/ai-plan-slide.png" }
-];
-
-const stages = [
-  { no: "01", title: "统一思想", text: "问卷和宣讲先行，把“为什么做 AI”讲清楚，形成 all in AI 的统一共识。", status: "问卷已完成，结果分析待补齐" },
-  { no: "02", title: "梳理业务", text: "按中心、学员管理室、理论、技术、英语/运行教研室逐项拆开业务链条。", status: "围绕资质、计划、质量、报表、课程开发建模" },
-  { no: "03", title: "引入方案", text: "从问题、流程、边界、痛点四个维度判断 AI 应该落在哪个环节。", status: "优先找高门槛重复性工作" },
-  { no: "04", title: "分阶段目标", text: "当下提速，中期改革，远景规划，最终形成 AI 干活、人监督 的协作模式。", status: "从优化到重构，再到掀翻旧流程" }
-];
-
-const workstreams = [
-  { name: "中心级业务", items: ["绩效", "业务审批", "对部门汇报", "项目性汇报"] },
-  { name: "学员管理室", items: ["学员报到流程", "训练计划", "作风管理", "训练报表", "积分管理", "航校管理", "学员下飞管理"] },
-  { name: "理论教研室", items: ["教员资质管理", "大纲课课程管理", "复训课课程管理", "换季理论课程管理", "教学计划管理", "训练质量管理", "课程开发更新管理", "项目性课程管理"] },
-  { name: "技术教研室", items: ["教员资质管理", "模拟机训练课程管理", "教学计划管理", "教学质量管理", "模拟机课程开发管理"] },
-  { name: "英语/运行教研室", items: ["教员资质管理", "资质类课程管理", "复训/复考课程管理", "教学计划管理", "教学质量管理", "课程开发管理", "项目性课程管理"] }
-];
-
-const scenarios = [
-  { title: "定位问题", bullets: ["谁在用", "什么场景", "困难在哪", "后果是什么"] },
-  { title: "定位流程", bullets: ["问题卡在哪个环节", "端到端看链路", "明确前后依赖"] },
-  { title: "画出边界", bullets: ["起点是什么", "终点是什么", "哪些节点可以交给 AI"] },
-  { title: "解决痛点", bullets: ["优先切重复劳动", "保留人监督", "沉淀为标准流程"] }
+  { id: "duan", name: "段超", role: "飞训中心主任", avatar: "段" },
+  { id: "manager", name: "培训管理岗", role: "培训部管理人员", avatar: "管" },
+  { id: "teacher", name: "教员用户", role: "培训教员", avatar: "教" }
 ];
 
 const navItems = [
-  ["dashboard", "工作台", ""],
-  ["courses", "课程中心", "48"],
-  ["approvals", "报名审批中心", "12"],
-  ["students", "学员管理", "348"],
-  ["faculty", "教员资质", "31"],
-  ["directory", "组织通讯录", "390"],
-  ["reports", "数据看板", ""],
-  ["aihub", "AI 工作台", "P0"]
+  ["dashboard", "工作台"],
+  ["courseware", "AI课件助手"],
+  ["faculty", "教员资质"],
+  ["assetsCenter", "数字资产中心"],
+  ["organization", "组织架构"],
+  ["resources", "训练资源"],
+  ["reports", "数据看板"],
+  ["roadmap", "建设路线"]
+];
+
+const loginStats = [
+  ["160", "截至 2022 年 11 月在编教职员工"],
+  ["3+3", "三个中心三个科室协同运行"],
+  ["31", "普通教室及专项训练场景"]
+];
+
+const heroStats = [
+  ["160", "在编教职员工"],
+  ["17%", "管理干部占比"],
+  ["15%", "硕士研究生占比"],
+  ["72%", "党员占比"]
+];
+
+const leaderFocus = [
+  ["网站定位", "从部门出发先做成平台底座，后续向更大培训体系扩展。", "平台底座"],
+  ["AI 课件助手", "统一课件标准，按学员授课、局方审核、内部汇报等场景输出不同版本。", "优先模块"],
+  ["教员资质管理", "建立教员全生命周期画像，看到能干什么、干过什么、何时有风险。", "核心模块"],
+  ["数字资产与自动化", "沉淀可复制工作流，按纸质化、数字化、智能化三步逐步推进。", "长期建设"]
+];
+
+const metrics = [
+  ["6", "首批核心模块"],
+  ["3", "优先闭环任务"],
+  ["12", "飞行训练设备"],
+  ["18+", "客舱模拟训练设备"],
+  ["31", "普通教室"],
+  ["1", "多功能训练泳池"]
+];
+
+const dashboardLinks = [
+  ["AI课件助手", "先解决课件风格不统一、格式不统一和场景适配问题。"],
+  ["教员资质画像", "把资质、授权、授课记录和预警做成一人一画像。"],
+  ["数字资产中心", "沉淀模板、流程、知识与版本，形成可复制工作流。"] 
+];
+
+const coursewareModes = [
+  ["模板中心", "统一封面、目录、章节页、字体、配色、页脚和校验规则。", ["品牌统一", "格式统一", "送审更稳"]],
+  ["内容生成", "输入课程主题、大纲或素材，输出结构化课件初稿和讲稿框架。", ["自动生成", "可人工改写", "版本留痕"]],
+  ["场景切换", "同一主题自动输出学员授课版、局方审核版、汇报版和教员备课版。", ["多版本", "同源内容", "适配场景"]],
+  ["标准检查", "自动发现页数异常、术语不统一、格式不规范和缺失页。", ["自动校验", "减少返工", "支持复核"]]
+];
+
+const coursewareChecklist = [
+  ["统一课件模板", "先固化培训部标准封面、目录、章节分隔、页脚及页码规则。", "P0"],
+  ["统一内容结构", "建立课程目标、教学重点、考核方式、风险提示等固定模块。", "P0"],
+  ["统一审核口径", "把局方关注点、送审注意项和历史意见沉淀到规则库。", "P1"],
+  ["统一版本管理", "每次生成、修改、审核、发布都保留版本与责任人。", "P1"]
+];
+
+const coursewareScenes = [
+  ["学员授课版", "更强调案例、流程、重点提示与课堂节奏。"],
+  ["局方审核版", "更强调依据、规范来源、教学目标和合规表达。"],
+  ["内部汇报版", "更强调目标、进度、成果和问题复盘。"]
+];
+
+const facultyFlow = [
+  ["基础身份建档", "建立一人一档案，收口基础信息、组织归属、岗位角色和联系方式。", "一人一身份"],
+  ["资质与授权", "记录机型、课程授权、证照期限、复训要求和可授课边界。", "授权可视"],
+  ["授课与训练记录", "沉淀授课次数、学时、课件更新、质量反馈和培训经历。", "过程留痕"],
+  ["风险预警与续期", "对到期证照、待复训、冲突授权和质量波动自动提醒。", "风险前置"]
+];
+
+const facultyPortrait = [
+  ["基础档案", "姓名、岗位、中心归属、角色权限。"],
+  ["资质状态", "证照、授权课程、有效期、复训周期。"],
+  ["授课画像", "学时、课程覆盖、评分、质量反馈。"],
+  ["内容贡献", "课件开发、更新记录、知识沉淀。"],
+  ["运行风险", "即将到期、待复训、异常预警。"],
+  ["协同关系", "参与项目、所属流程、关联资产。"]
+];
+
+const facultyRisks = [
+  ["B737 机型授权复训", "6 人 30 天内到期", "高"],
+  ["英语课程授权更新", "3 门课程待确认", "中"],
+  ["局方审核课件关联教员", "2 人待补充送审说明", "中"],
+  ["理论教研室教员画像建档", "首批 12 人待完善", "推进中"]
+];
+
+const assetTypes = [
+  ["模板库", "课件模板、汇报模板、审批模板、通知模板"],
+  ["流程库", "课程开发、送审、资质维护、训练组织流程"],
+  ["知识库", "制度术语、审核要点、优秀案例、常见问题"],
+  ["版本库", "课件历史版本、修订记录、责任人、发布时间"]
+];
+
+const assetLedger = [
+  ["课件模板", "飞行培训通用模板 V1.0", "已上线"],
+  ["场景模板", "学员授课版 / 局方审核版", "建设中"],
+  ["工作流", "课件开发与审核流程", "首批落地"],
+  ["知识资产", "局方审核关注点清单", "整理中"],
+  ["历史案例", "优秀课件与复盘样例", "持续补充"]
+];
+
+const assetFlows = [
+  ["课件开发工作流", "素材输入 -> 模板套用 -> AI 初稿 -> 人工修订 -> 送审归档", "可复制"],
+  ["教员资质维护工作流", "资料收集 -> 建档 -> 授权确认 -> 到期提醒 -> 复训更新", "可复制"],
+  ["训练组织工作流", "计划制定 -> 资源排布 -> 实施记录 -> 结果沉淀 -> 看板分析", "可复制"],
+  ["汇报输出工作流", "业务数据 -> 模板调用 -> AI 汇总 -> 管理复核 -> 对外输出", "可复制"]
+];
+
+const orgTree = [
+  ["总经理室", ["培训部"]],
+  ["基础支撑", ["综合业务室", "综合培训室", "计划质控室"]],
+  ["飞行训练中心", ["理论教研室", "技术教研室", "英语教研室", "飞行学员管理室"]],
+  ["乘务训练中心", ["服务教研室", "安全教研室", "乘务学员管理室"]],
+  ["模拟机维护中心", ["飞行模拟机维护室", "乘务模拟机维护室", "工程技术室", "航材管理室"]]
+];
+
+const orgPriority = [
+  ["一期先覆盖培训部", "优先围绕飞行训练中心及三项基础支撑建立数据底座。", "当前范围"],
+  ["二期向更多中心扩展", "把课件标准、画像能力、工作流复制到乘务训练与维护中心。", "后续扩展"],
+  ["统一权限与身份", "先按角色设计页面和权限，避免后续扩展时重做。", "底层原则"]
+];
+
+const resourceSummary = [
+  ["飞行训练设备", "12 类设备能力", "4 台 B737-800 全动模拟机、3 台 A320-200CEO 飞行模拟机等"],
+  ["乘务训练设备", "18 套客舱训练设备", "动态舱、客舱服务模拟器、灭火与出口模拟器、水上训练船"],
+  ["培训教室", "多场景教学空间", "PLPEC&PLTT 考点、FAP、CPR、CBT 与 31 个普通教室"]
+];
+
+const resourceStacks = [
+  ["飞行训练设备", ["4 台 B737-800 飞行模拟机", "1 台 B737-8 飞行模拟机", "1 台 B737-800 APT", "3 台 A320-200CEO 飞行模拟机", "2 台 A320-200NEO 飞行模拟机", "1 台 A320NEO APT"]],
+  ["乘务训练设备", ["1 台 A320 客舱模拟器（动态）", "1 台 B737 客舱模拟器", "3 台客舱服务模拟器", "2 台灭火模拟器", "6 台出口模拟器", "2 台水上训练船", "1 台营救船"]],
+  ["培训教室", ["1 个 PLPEC&PLTT 考点", "1 个应急设备室", "1 个形体训练房", "1 个茶文化教室", "1 个酒文化教室", "1 个厨房教室", "1 个化妆教室", "1 个 FAP 教室", "3 个 CPR 教室", "5 个 CBT 教室", "31 个普通教室"]]
+];
+
+const reportMetrics = [
+  ["85%", "课件标准统一覆盖率目标"],
+  ["100%", "核心教员画像建档率目标"],
+  ["4 类", "首批数字资产沉淀类型"],
+  ["3 步", "纸质化到智能化推进路径"],
+  ["2 个", "领导点名优先模块"],
+  ["1 套", "可复制工作流体系"]
+];
+
+const reportFocus = [
+  ["标准化", "看模板统一率、场景覆盖率、送审返工率。"],
+  ["画像化", "看建档完整率、资质到期风险、授权冲突。"],
+  ["资产化", "看模板库、流程库、知识库、版本库沉淀情况。"],
+  ["自动化", "看人工录入占比、流程线上化率、自动提醒数量。"],
+  ["智能化", "看 AI 初稿采用率、生成效率、复用频次。"],
+  ["扩展性", "看模块复用能力和向更大范围推广条件。"]
+];
+
+const reportActions = [
+  ["先做课件模板库", "把飞行、理论、英语等课程模板先统一。", "马上推进"],
+  ["先做教员画像首批样板", "从飞行训练中心核心教员开始建档。", "样板先行"],
+  ["先沉淀 4 条工作流", "课件、资质、训练组织、汇报输出先闭环。", "沉淀资产"],
+  ["先允许人工录入", "先把数据拿到手，再逐步自动化。", "务实路线"]
+];
+
+const roadmapStages = [
+  ["01", "纸质化转数字化", "先通过人工录入和表单化，把底账建起来。", ["统一字段", "先有人录", "先有台账"]],
+  ["02", "数字化规范运行", "把模板、流程、权限、台账和看板正式跑起来。", ["流程收口", "数据可查", "结果可看"]],
+  ["03", "智能化逐步叠加", "在课件、画像、汇报、提醒等高价值场景引入 AI。", ["AI 初稿", "自动提醒", "知识调用"]]
+];
+
+const phaseOne = [
+  ["AI 课件助手上线原型", "先做模板中心、场景切换、标准检查三项核心能力。", "一期核心"],
+  ["教员画像试点", "先覆盖飞行训练中心首批教员，形成可展示样板。", "一期核心"],
+  ["数字资产台账", "把模板、流程、知识和版本这四类资产先收口。", "一期核心"],
+  ["手工录入底数", "人工录入不丢人，关键是先把数据体系建立起来。", "务实推进"]
 ];
 
 let activePage = "dashboard";
-let dirTab = "dept";
-let selectedPerson = people[0];
-let activeHeroSlide = 0;
-let heroTimer = null;
 
-function iconForStatus(status) {
-  if (!status) return "";
-  if (status.includes("忙碌")) return " 🧑‍💻 ";
-  if (status.includes("请假")) return " 🕘 ";
-  if (status.includes("学习")) return " 😎 ";
-  if (status.includes("奋斗")) return " 😊 ";
-  return " 👨‍💻 ";
+function qs(id) {
+  return document.getElementById(id);
 }
 
 function renderRoleSelect() {
-  const select = document.getElementById("role");
-  select.innerHTML = roles.map(r => `<option value="${r.id}">${r.role} · ${r.name}</option>`).join("");
-  select.value = "duan";
+  qs("role").innerHTML = roles.map(role => `<option value="${role.id}">${role.role} · ${role.name}</option>`).join("");
+  qs("role").value = "duan";
+}
+
+function applyRole() {
+  const role = roles.find(item => item.id === qs("role").value) || roles[0];
+  qs("sideAvatar").textContent = role.avatar;
+  qs("sideName").textContent = role.name;
+  qs("sideRole").textContent = role.role;
 }
 
 function renderNav() {
-  document.getElementById("nav").innerHTML = navItems.map(([id, label, badge]) => (
-    `<button class="${id === activePage ? "active" : ""}" data-go="${id}"><span>${label}</span>${badge ? `<small>${badge}</small>` : ""}</button>`
+  qs("nav").innerHTML = navItems.map(([id, label], index) => (
+    `<button class="${activePage === id ? "active" : ""}" data-go="${id}"><span>${label}</span>${index === 1 ? "<em>重点</em>" : index === 2 ? "<em>优先</em>" : index === 3 ? "<em>资产</em>" : ""}</button>`
   )).join("");
 }
 
 function switchPage(id) {
   activePage = id;
-  document.querySelectorAll(".page").forEach(p => p.classList.toggle("active", p.id === id));
-  document.getElementById("pageTitle").textContent = navItems.find(n => n[0] === id)?.[1] || "工作台";
+  document.querySelectorAll(".page").forEach(page => page.classList.toggle("active", page.id === id));
+  qs("pageTitle").textContent = navItems.find(item => item[0] === id)?.[1] || "工作台";
   renderNav();
 }
 
-function renderDashboard() {
-  const todos = [
-    ["red", "危险品运输安全培训", "今日 14:00 开课，请提前完成签到", "06-18"],
-    ["", "ICAO 英语模拟测试", "英语教研室待确认考试批次", "06-20"],
-    ["green", "应急撤离程序复训", "已完成，成绩 92 分", "06-16"],
-    ["red", "学员报到审核", "本周新学员报到材料待复核", "本周"]
-  ];
-  document.getElementById("todoList").innerHTML = todos.map(t => `<div class="todo"><i class="dot ${t[0]}"></i><div><strong>${t[1]}</strong><span>${t[2]}</span></div><time>${t[3]}</time></div>`).join("");
-  document.getElementById("deptSummary").innerHTML = [
-    ["课程报名与审批闭环", "课程中心 + 审批中心", "P0 优先上线"],
-    ["学员训练管理闭环", "学员管理 + 数据看板", "P0 核心台账"],
-    ["AI 报表与汇报闭环", "数据看板 + AI 工作台", "P1 持续提速"]
-  ].map(row => `<tr><td><a href="#" data-go="aihub">${row[0]}</a></td><td>${row[1]}</td><td><span class="pill">${row[2]}</span></td></tr>`).join("");
-  document.getElementById("targetBand").innerHTML = [
-    ["首页工作台", "先看重点事项、优先闭环和管理指标，再进入具体业务面板。"],
-    ["课程中心", "统一管理报名、开班、复训、归档四类课程运行状态。"],
-    ["报名审批中心", "把课程审批、资质审批、计划审批收口到同一入口。"],
-    ["学员管理", "围绕报到、训练计划、积分、下飞等业务形成完整闭环。"],
-    ["教员资质", "证照、授权、复训和课程开发记录统一维护。"],
-    ["AI 工作台", "审批助手、报表助手、知识库助手作为第一批 AI 场景。"]
-  ].map(t => `<div class="portal-tile"><h4>${t[0]}</h4><p>${t[1]}</p></div>`).join("");
-  document.getElementById("metricStrip").innerHTML = [
-    ["2.6h", "平均审批处理时长"],
-    ["91%", "核心业务线上化率"],
-    ["96%", "关键数据完整率"],
-    ["68%", "AI 初稿采用率"],
-    ["-43%", "重复录入下降"],
-    ["12min", "汇报生成时长"]
-  ].map(m => `<div class="metric-box"><strong>${m[0]}</strong><span>${m[1]}</span></div>`).join("");
-}
-
-function renderHeroCarousel() {
-  const slides = document.getElementById("heroSlides");
-  const dots = document.getElementById("heroDots");
-  slides.innerHTML = heroSlides.map((slide, index) => `
-    <article class="hero-slide ${index === activeHeroSlide ? "active" : ""} ${slide.dark ? "is-dark" : ""}">
-      <img src="${slide.image}" alt="">
-      ${slide.title ? `<div class="hero-minimal-copy"><h2>${slide.title}</h2></div>` : ""}
-    </article>
-  `).join("");
-  dots.innerHTML = heroSlides.map((_, index) => `<button class="${index === activeHeroSlide ? "active" : ""}" data-slide="${index}" aria-label="slide ${index + 1}"></button>`).join("");
-}
-
-function startHeroCarousel() {
-  if (heroTimer) clearInterval(heroTimer);
-  heroTimer = setInterval(() => {
-    activeHeroSlide = (activeHeroSlide + 1) % heroSlides.length;
-    renderHeroCarousel();
-  }, 4200);
-}
-
-function renderAIHub() {
-  document.getElementById("stageGrid").innerHTML = stages.map(s => `
-    <article class="stage-card">
-      <span class="stage-no">${s.no}</span>
-      <h4>${s.title}</h4>
-      <p>${s.text}</p>
-      <div class="progress"><i style="width:${s.no === "01" ? 100 : s.no === "02" ? 72 : s.no === "03" ? 48 : 35}%;background:${s.no === "01" ? "var(--green)" : s.no === "02" ? "var(--blue)" : "var(--sz-red)"}"></i></div>
-      <p style="margin-top:10px"><strong>${s.status}</strong></p>
-    </article>
-  `).join("");
-  document.getElementById("laneGrid").innerHTML = workstreams.map(w => `
-    <article class="lane">
-      <h4>${w.name}</h4>
-      <ul>${w.items.map(item => `<li>${item}</li>`).join("")}</ul>
-    </article>
-  `).join("");
-  document.getElementById("aiGrid").innerHTML = [
-    ["审批助手", "自动读取申请内容，生成审批摘要、风险提示和建议意见。", ["适用课程报名", "适用资质续期", "全程留痕"]],
-    ["报表助手", "按周报、月报、专项汇报模板自动汇总训练、资质和审批数据。", ["生成初稿", "引用台账", "支持复核"]],
-    ["知识库助手", "把制度、课件、历史复盘和更新记录汇总为检索式知识库。", ["按角色检索", "支持问答", "沉淀规范"]],
-    ["排课助手", "辅助发现时间冲突、资源占用和重复排班，优先做建议稿。", ["避免冲突", "给出备选", "人工确认"]],
-    ["课程开发助手", "围绕大纲、课件、更新说明生成课程开发初稿与改版建议。", ["适合理论/英语", "更新可追踪", "输出结构化"]],
-    ["风险预警助手", "对过期证照、即将复训、审批积压和质量波动给出预警。", ["预警提前", "自动提醒", "支持催办"]]
-  ].map(card => `<article class="ai-card"><h4>${card[0]}</h4><p>${card[1]}</p><ul>${card[2].map(item => `<li>${item}</li>`).join("")}</ul></article>`).join("");
-}
-
-function renderDirectory() {
-  const query = document.getElementById("peopleSearch").value.trim();
-  const list = document.getElementById("directoryList");
-  document.querySelectorAll("[data-dir-tab]").forEach(btn => btn.classList.toggle("active", btn.dataset.dirTab === dirTab));
-  if (dirTab === "dept" && !query) {
-    list.innerHTML = departments.map(d => `<button class="dept-row" data-open-dept="${d.name}"><span class="folder">▣</span><span><span class="dept-title">${d.name}</span><span class="dept-count">(${d.count}人)</span></span></button>`).join("");
-  } else {
-    const shown = people.filter(p => !query || (p.name + p.role + p.dept + (p.status || "")).includes(query));
-    if (!shown.some(p => p.name === selectedPerson.name) && shown.length) {
-      selectedPerson = shown[0];
-    }
-    list.innerHTML = shown.map(p => `<button class="person-row ${p.name === selectedPerson.name ? "selected" : ""}" data-person="${p.name}">
-      <span class="avatar">${p.avatar}</span>
-      <span><span class="name-line"><span class="person-name">${p.name}</span>${p.manager ? '<span class="badge manager">子管理员</span>' : ""}${p.status ? `<span class="status">${iconForStatus(p.status)}${p.status}</span>` : ""}</span><span class="person-role">${p.role}</span></span>
-    </button>`).join("");
-  }
-  renderPersonDetail();
-}
-
-function renderPersonDetail() {
-  const p = selectedPerson;
-  document.getElementById("personDetail").innerHTML = `
-    <div class="detail-hero">
-      <div class="avatar" style="width:72px;height:72px;border-radius:18px;font-size:26px">${p.avatar}</div>
-      <div><h2>${p.name}${p.manager ? ' <span class="badge manager">子管理员</span>' : ""}</h2><p>${p.dept} · ${p.role}${p.status ? " · " + p.status : ""}</p></div>
-    </div>
-    <div class="detail-grid">
-      <div class="info-box"><span>本月授课</span><b>${p.lessons} 次</b></div>
-      <div class="info-box"><span>累计学时</span><b>${p.hours} h</b></div>
-      <div class="info-box"><span>课程评分</span><b>${p.score}</b></div>
-      <div class="info-box"><span>权限角色</span><b>${p.manager ? "子管理员" : "普通成员"}</b></div>
-      <div class="info-box"><span>组织归属</span><b>${p.dept}</b></div>
-      <div class="info-box"><span>当前状态</span><b>${p.status || "在线"}</b></div>
-    </div>
-    <div class="card-head"><h3>相关课程</h3><button class="btn primary">分配课程</button></div>
-    <table class="table"><thead><tr><th>课程</th><th>日期</th><th>状态</th></tr></thead><tbody>
-      <tr><td><a href="#">航空英语 ICAO Level 4</a></td><td>2026-06-25</td><td><span class="pill green">进行中</span></td></tr>
-      <tr><td><a href="#">B737NG 机型差异培训</a></td><td>2026-06-18</td><td><span class="pill">待开课</span></td></tr>
-      <tr><td><a href="#">CRM 机组资源管理</a></td><td>2026-06-15</td><td><span class="pill red">待确认</span></td></tr>
-    </tbody></table>
-  `;
-}
-
-function renderCourses() {
-  document.getElementById("courseOps").innerHTML = [
-    ["报名中课程", "统一收口报名申请、名额占用、冲突校验。"],
-    ["即将开班", "自动联动教员、场地、计划和审批状态。"],
-    ["复训课程", "按到期周期提醒复训、复考和通知发送。"],
-    ["课程归档", "沉淀成绩、签到、课件和过程记录。"]
-  ].map(c => `<article class="ops-card"><b>${c[0]}</b><p>${c[1]}</p></article>`).join("");
-  document.getElementById("courseGrid").innerHTML = courses.map(c => `<article class="course">
-    <div class="course-top ${c.type}"><strong>${c.type === "red" ? "安全" : c.type === "gold" ? "英语" : "训练"}</strong><span class="pill" style="background:rgba(255,255,255,.22);color:white">报名中</span></div>
-    <div class="course-body"><h3>${c.name}</h3><p>讲师：${c.teacher}</p><p>${c.meta}</p><div class="progress"><i style="width:${c.pct}%"></i></div></div>
-  </article>`).join("");
-}
-
-function renderApprovals() {
-  const rows = people.slice(1, 7).map((p, i) => [p.name, p.dept, courses[i % courses.length].name, `06-${10 + i} 09:${i}0`]);
-  document.getElementById("approvalRows").innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><span class="pill red">待审批</span></td><td><button class="btn primary">通过</button> <button class="btn">驳回</button></td></tr>`).join("");
-  document.getElementById("approvalFlows").innerHTML = [
-    ["课程报名审批", "学员发起 -> 科室审核 -> 培训部确认 -> 自动通知", "P0"],
-    ["资质续期审批", "教员提交资料 -> 资质复核 -> 到期提醒 -> 完成归档", "P0"],
-    ["计划调整审批", "排课变更 -> 资源校验 -> 领导审批 -> 更新工作台", "P1"],
-    ["专项报表审批", "报表草稿 -> AI 摘要 -> 管理复核 -> 对部门汇报", "P1"]
-  ].map(item => `<article class="process-row"><span class="process-tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">查看流程</button></article>`).join("");
-}
-
-function renderStudents() {
-  document.getElementById("studentFlow").innerHTML = [
-    ["报到管理", "新学员报到、资料校验、基础档案建档。", "入口收口"],
-    ["训练计划", "训练阶段、排班安排、异常调整和提醒。", "计划联动"],
-    ["过程台账", "积分、作风、训练记录、航校信息统一沉淀。", "数据沉淀"],
-    ["下飞管理", "资格核验、评估结论、离队闭环和档案归档。", "闭环完成"]
-  ].map(item => `<article class="process-row"><span class="process-tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">进入</button></article>`).join("");
-  document.getElementById("studentLedger").innerHTML = [
-    ["在训学员", "214 人"],
-    ["本周报到", "16 人"],
-    ["下飞办理中", "9 人"],
-    ["积分异常", "3 条"],
-    ["航校协同事项", "11 项"],
-    ["待更新训练记录", "27 条"]
-  ].map(row => `<tr><td>${row[0]}</td><td>${row[1]}</td></tr>`).join("");
-}
-
-function renderFaculty() {
-  document.getElementById("facultyFlow").innerHTML = [
-    ["资质建档", "教员证照、授权课程、岗位归属一次建档。", "一人一身份"],
-    ["复训到期", "按证照与课程周期生成复训和复考提醒。", "自动提醒"],
-    ["授课授权", "课程授权与排课权限联动，避免错配授课。", "权限联动"],
-    ["课程开发", "课件更新、版本记录、质量反馈统一归档。", "知识沉淀"]
-  ].map(item => `<article class="process-row"><span class="process-tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">查看</button></article>`).join("");
-  document.getElementById("facultyLedger").innerHTML = [
-    ["本月到期资质", "6 项"],
-    ["待复训教员", "11 人"],
-    ["授权冲突", "2 条"],
-    ["待更新课件", "7 份"],
-    ["质量复盘待办", "4 项"],
-    ["AI 生成提醒", "13 条"]
-  ].map(row => `<tr><td>${row[0]}</td><td>${row[1]}</td></tr>`).join("");
-}
-
-function renderReports() {
-  document.getElementById("reportMetrics").innerHTML = [
-    ["-38%", "审批处理时长下降"],
-    ["89%", "核心业务线上化率"],
-    ["95%", "数据完整率"],
-    ["71%", "AI 初稿采用率"],
-    ["-41%", "重复录入减少"],
-    ["4.3x", "汇报生成效率"]
-  ].map(m => `<div class="metric-box"><strong>${m[0]}</strong><span>${m[1]}</span></div>`).join("");
-  document.getElementById("reportBars").innerHTML = scenarios.map(s => `
-    <div style="margin-bottom:18px">
-      <strong style="display:block;margin-bottom:8px">${s.title}</strong>
-      <ul class="muted-list">${s.bullets.map(b => `<li>${b}</li>`).join("")}</ul>
-    </div>
-  `).join("");
-  document.getElementById("rankingRows").innerHTML = [
-    ["绩效与业务审批", "先做摘要、归类、催办和意见草拟，缩短流转时间。"],
-    ["教学计划与课程管理", "把排课、冲突检查、计划生成作为 AI 先行场景。"],
-    ["训练质量与报表", "自动汇总质量波动、月报、对部门汇报材料。"],
-    ["资质与课程开发", "把标准、历史课件、更新记录串成知识库辅助开发。"] 
-  ].map(r => `<article class="scenario-card"><h4>${r[0]}</h4><p>${r[1]}</p></article>`).join("");
-}
-
-function bindEvents() {
-  document.body.addEventListener("click", e => {
-    const go = e.target.closest("[data-go]");
-    if (go) switchPage(go.dataset.go);
-    const slideDot = e.target.closest("[data-slide]");
-    if (slideDot) {
-      activeHeroSlide = Number(slideDot.dataset.slide) || 0;
-      renderHeroCarousel();
-      startHeroCarousel();
-    }
-    const tab = e.target.closest("[data-dir-tab]");
-    if (tab) { dirTab = tab.dataset.dirTab; renderDirectory(); }
-    const dept = e.target.closest("[data-open-dept], [data-dept]");
-    if (dept) { dirTab = "people"; document.getElementById("peopleSearch").value = dept.dataset.openDept || dept.dataset.dept; switchPage("directory"); renderDirectory(); }
-    const person = e.target.closest("[data-person]");
-    if (person) { selectedPerson = people.find(p => p.name === person.dataset.person) || selectedPerson; renderDirectory(); }
-    const loginPreview = e.target.closest(".login-composite");
-    if (loginPreview) {
-      const role = roles[0];
-      document.getElementById("sideAvatar").textContent = role.avatar;
-      document.getElementById("sideName").textContent = role.name;
-      document.getElementById("sideRole").textContent = role.role;
-      selectedPerson = people.find(p => p.name === role.name) || people[0];
-      document.getElementById("loginPage").classList.add("hidden");
-      document.getElementById("app").classList.remove("hidden");
-      switchPage("dashboard");
-      renderDirectory();
-    }
-  });
-  document.getElementById("peopleSearch").addEventListener("input", () => { dirTab = "people"; renderDirectory(); });
-  document.getElementById("clearSearch").addEventListener("click", () => { document.getElementById("peopleSearch").value = ""; dirTab = "dept"; renderDirectory(); });
-  document.getElementById("loginForm").addEventListener("submit", e => {
-    e.preventDefault();
-    const role = roles.find(r => r.id === document.getElementById("role").value) || roles[0];
-    document.getElementById("sideAvatar").textContent = role.avatar;
-    document.getElementById("sideName").textContent = role.name;
-    document.getElementById("sideRole").textContent = role.role;
-    selectedPerson = people.find(p => p.name === role.name) || people[0];
-    document.getElementById("loginPage").classList.add("hidden");
-    document.getElementById("app").classList.remove("hidden");
-    switchPage("dashboard");
-    renderDirectory();
-  });
-  document.getElementById("logout").addEventListener("click", () => {
-    document.getElementById("loginPage").classList.remove("hidden");
-    document.getElementById("app").classList.add("hidden");
-  });
+function renderCards() {
+  qs("loginStats").innerHTML = loginStats.map(item => `<div class="login-stat"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("");
+  qs("heroStats").innerHTML = heroStats.map(item => `<div class="hero-stat"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("");
+  qs("leaderFocus").innerHTML = leaderFocus.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn" data-go="roadmap">查看</button></div>`).join("");
+  qs("metricGrid").innerHTML = metrics.map(item => `<div class="metric"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("");
+  qs("dashboardLinks").innerHTML = dashboardLinks.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("coursewareModes").innerHTML = coursewareModes.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p><ul>${item[2].map(text => `<li>${text}</li>`).join("")}</ul></article>`).join("");
+  qs("coursewareChecklist").innerHTML = coursewareChecklist.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">跟进</button></div>`).join("");
+  qs("coursewareScenes").innerHTML = coursewareScenes.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("facultyFlow").innerHTML = facultyFlow.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">查看</button></div>`).join("");
+  qs("facultyPortrait").innerHTML = facultyPortrait.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("facultyRisks").innerHTML = facultyRisks.map(item => `<tr><td>${item[0]}</td><td>${item[1]}</td><td><span class="pill ${item[2] === "高" ? "red" : item[2] === "推进中" ? "green" : ""}">${item[2]}</span></td></tr>`).join("");
+  qs("assetTypes").innerHTML = assetTypes.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("assetLedger").innerHTML = assetLedger.map(item => `<tr><td>${item[0]}</td><td>${item[1]}</td><td><span class="pill">${item[2]}</span></td></tr>`).join("");
+  qs("assetFlows").innerHTML = assetFlows.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">复用</button></div>`).join("");
+  qs("orgTree").innerHTML = orgTree.map(item => `<article class="org-card"><h4>${item[0]}</h4><div class="org-children">${item[1].map(text => `<span>${text}</span>`).join("")}</div></article>`).join("");
+  qs("orgPriority").innerHTML = orgPriority.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn" data-go="dashboard">返回</button></div>`).join("");
+  qs("resourceSummary").innerHTML = resourceSummary.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p><strong>${item[1]}</strong></p><p style="margin-top:8px">${item[2]}</p></article>`).join("");
+  qs("resourceStacks").innerHTML = resourceStacks.map(item => `<article class="feature-card"><h4>${item[0]}</h4><ul>${item[1].map(text => `<li>${text}</li>`).join("")}</ul></article>`).join("");
+  qs("reportMetrics").innerHTML = reportMetrics.map(item => `<div class="metric"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("");
+  qs("reportFocus").innerHTML = reportFocus.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("reportActions").innerHTML = reportActions.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">执行</button></div>`).join("");
+  qs("roadmapStages").innerHTML = roadmapStages.map(item => `<article class="stage"><strong>${item[0]}</strong><h4>${item[1]}</h4><p>${item[2]}</p><ul>${item[3].map(text => `<li>${text}</li>`).join("")}</ul></article>`).join("");
+  qs("phaseOne").innerHTML = phaseOne.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">跟踪</button></div>`).join("");
 }
 
 function tick() {
-  document.getElementById("clock").textContent = new Date().toLocaleString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+  qs("clock").textContent = new Date().toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 renderRoleSelect();
 renderNav();
-renderDashboard();
-renderHeroCarousel();
-startHeroCarousel();
-renderAIHub();
-renderDirectory();
-renderCourses();
-renderApprovals();
-renderStudents();
-renderFaculty();
-renderReports();
-bindEvents();
+renderCards();
+applyRole();
 tick();
 setInterval(tick, 30000);
+
+document.body.addEventListener("click", (event) => {
+  const go = event.target.closest("[data-go]");
+  if (go) switchPage(go.dataset.go);
+});
+
+qs("loginForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  applyRole();
+  qs("loginPage").classList.add("hidden");
+  qs("app").classList.remove("hidden");
+  switchPage("dashboard");
+});
+
+qs("logout").addEventListener("click", () => {
+  qs("app").classList.add("hidden");
+  qs("loginPage").classList.remove("hidden");
+});
 </script>
 </body>
 </html>

@@ -6,3 +6,6 @@ window.TRAINING_QA_API_URL = window.TRAINING_QA_API_URL || "https://training-qa-
 
 // 当某个来源没有原文直链时（例如订阅知识库），点击来源跳转到的 ima 共享知识库页面
 window.TRAINING_QA_SHARED_KB_URL = window.TRAINING_QA_SHARED_KB_URL || "https://ima.qq.com/wiki/?shareId=bbe207edc532702d12be453f0a2a28845c93a77a750806b42ec3922e7400ea00";
+
+// 钉钉“飞行学员管理室”成员同步接口。
+window.TRAINING_STUDENTS_API_URL = window.TRAINING_STUDENTS_API_URL || "https://training-qa-api.onrender.com/api/students";

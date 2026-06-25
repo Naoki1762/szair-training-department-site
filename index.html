@@ -573,6 +573,84 @@ a { color: inherit; }
   color: var(--muted);
 }
 .mini-table tr:last-child td { border-bottom: 0; }
+.student-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.student-search {
+  width: min(360px, 100%);
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: 0;
+  color: var(--text);
+  background: white;
+}
+.student-search:focus,
+.student-access input:focus {
+  border-color: rgba(28, 100, 217, .5);
+  box-shadow: 0 0 0 3px rgba(28, 100, 217, .08);
+}
+.student-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.student-access {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) auto;
+  gap: 10px;
+  max-width: 520px;
+}
+.student-access input {
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: 0;
+}
+.student-state {
+  display: grid;
+  place-items: center;
+  min-height: 230px;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+}
+.student-state strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 18px;
+}
+.student-table-wrap { overflow-x: auto; }
+.student-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 150px;
+}
+.student-person .avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+.student-person .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.student-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
 
 .org-grid {
   display: grid;
@@ -993,6 +1071,18 @@ a { color: inherit; }
     grid-template-columns: 1fr;
     justify-items: start;
   }
+  .student-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .student-search { width: 100%; }
+  .student-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .student-actions .btn { width: 100%; }
+  .student-access { grid-template-columns: 1fr; }
   .qa-launcher {
     right: 14px;
     bottom: 14px;
@@ -1116,6 +1206,54 @@ a { color: inherit; }
                   <thead><tr><th>事项</th><th>说明</th><th>状态</th></tr></thead>
                   <tbody id="facultyRisks"></tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="students">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head">
+              <h3>在队学员</h3>
+              <span class="pill green" id="studentSyncStatus">钉钉通讯录</span>
+            </div>
+            <div class="card-body">
+              <div class="student-toolbar">
+                <div class="student-meta">
+                  <span>来源部门：<strong id="studentDepartment">飞行学员管理室</strong></span>
+                  <span>共 <strong id="studentCount">--</strong> 人</span>
+                  <span>同步时间：<strong id="studentSyncedAt">尚未同步</strong></span>
+                </div>
+                <div class="student-actions">
+                  <input class="student-search" id="studentSearch" type="search" placeholder="搜索姓名、工号或岗位" aria-label="搜索在队学员">
+                  <button class="btn primary" id="studentRefresh" type="button">刷新名单</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="student-state" id="studentAccessPanel">
+              <div>
+                <strong>验证名单访问权限</strong>
+                <p>输入由管理员设置的学员名单访问口令。</p>
+                <form class="student-access" id="studentAccessForm">
+                  <input id="studentAccessToken" type="password" autocomplete="current-password" placeholder="访问口令" aria-label="学员名单访问口令">
+                  <button class="btn primary" type="submit">进入名单</button>
+                </form>
+              </div>
+            </div>
+            <div class="hidden" id="studentListPanel">
+              <div class="student-table-wrap">
+                <table class="table">
+                  <thead><tr><th>学员</th><th>工号</th><th>岗位</th><th>钉钉状态</th></tr></thead>
+                  <tbody id="studentTable"></tbody>
+                </table>
+              </div>
+              <div class="student-state hidden" id="studentEmptyState">
+                <div><strong>没有匹配的学员</strong><span>请调整搜索关键词。</span></div>
               </div>
             </div>
           </div>
@@ -1252,6 +1390,7 @@ const roles = [
 
 const navItems = [
   ["dashboard", "工作台"],
+  ["students", "在队学员"],
   ["courseware", "AI课件助手"],
   ["faculty", "教员资质"],
   ["assetsCenter", "数字资产中心"],
@@ -1457,6 +1596,8 @@ let activeResourceSlide = 0;
 let resourceTimer = null;
 let qaStarted = false;
 let qaBusy = false;
+let students = [];
+let studentsLoaded = false;
 
 function qs(id) {
   return document.getElementById(id);
@@ -1475,8 +1616,8 @@ function applyRole() {
 }
 
 function renderNav() {
-  qs("nav").innerHTML = navItems.map(([id, label], index) => (
-    `<button class="${activePage === id ? "active" : ""}" data-go="${id}"><span>${label}</span>${index === 1 ? "<em>重点</em>" : index === 2 ? "<em>优先</em>" : index === 3 ? "<em>资产</em>" : ""}</button>`
+  qs("nav").innerHTML = navItems.map(([id, label]) => (
+    `<button class="${activePage === id ? "active" : ""}" data-go="${id}"><span>${label}</span>${id === "students" ? "<em>钉钉</em>" : id === "courseware" ? "<em>重点</em>" : id === "faculty" ? "<em>优先</em>" : id === "assetsCenter" ? "<em>资产</em>" : ""}</button>`
   )).join("");
 }
 
@@ -1485,6 +1626,93 @@ function switchPage(id) {
   document.querySelectorAll(".page").forEach(page => page.classList.toggle("active", page.id === id));
   qs("pageTitle").textContent = navItems.find(item => item[0] === id)?.[1] || "工作台";
   renderNav();
+  if (id === "students" && !studentsLoaded && sessionStorage.getItem("studentViewToken")) {
+    loadStudents();
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function renderStudents() {
+  const keyword = qs("studentSearch").value.trim().toLowerCase();
+  const filtered = students.filter(student => (
+    student.name.toLowerCase().includes(keyword)
+    || student.jobNumber.toLowerCase().includes(keyword)
+    || student.title.toLowerCase().includes(keyword)
+  ));
+
+  qs("studentTable").innerHTML = filtered.map(student => {
+    const avatar = student.avatar
+      ? `<img src="${escapeHtml(student.avatar)}" alt="">`
+      : escapeHtml(student.name.slice(0, 1) || "学");
+    return `<tr>
+      <td><div class="student-person"><div class="avatar">${avatar}</div><strong>${escapeHtml(student.name)}</strong></div></td>
+      <td>${escapeHtml(student.jobNumber || "--")}</td>
+      <td>${escapeHtml(student.title || "在队学员")}</td>
+      <td><span class="pill ${student.active ? "green" : ""}">${student.active ? "正常" : "停用"}</span></td>
+    </tr>`;
+  }).join("");
+  qs("studentEmptyState").classList.toggle("hidden", filtered.length > 0);
+}
+
+async function loadStudents(force = false) {
+  const token = sessionStorage.getItem("studentViewToken") || "";
+  if (!token) {
+    qs("studentAccessPanel").classList.remove("hidden");
+    qs("studentListPanel").classList.add("hidden");
+    return;
+  }
+
+  setStudentSyncStatus("正在同步");
+  qs("studentRefresh").disabled = true;
+  try {
+    const baseUrl = window.TRAINING_STUDENTS_API_URL || "/api/students";
+    const url = `${baseUrl}${force ? `${baseUrl.includes("?") ? "&" : "?"}refresh=1` : ""}`;
+    const response = await fetch(url, {
+      headers: { "X-Student-View-Token": token }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (response.status === 401) sessionStorage.removeItem("studentViewToken");
+      throw new Error(data.error || `名单接口返回 ${response.status}`);
+    }
+
+    students = Array.isArray(data.students) ? data.students : [];
+    studentsLoaded = true;
+    qs("studentDepartment").textContent = data.departmentName || "飞行学员管理室";
+    qs("studentCount").textContent = String(students.length);
+    qs("studentSyncedAt").textContent = data.syncedAt
+      ? new Date(data.syncedAt).toLocaleString("zh-CN", { hour12: false })
+      : "尚未同步";
+    qs("studentAccessPanel").classList.add("hidden");
+    qs("studentListPanel").classList.remove("hidden");
+    setStudentSyncStatus("同步完成", "green");
+    renderStudents();
+  } catch (error) {
+    studentsLoaded = false;
+    setStudentSyncStatus("同步失败", "red");
+    qs("studentAccessPanel").classList.remove("hidden");
+    qs("studentListPanel").classList.add("hidden");
+    const message = error instanceof TypeError
+      ? "名单服务暂时无法连接，请稍后重试。"
+      : (error.message || "暂时无法读取钉钉名单");
+    qs("studentAccessPanel").querySelector("p").textContent = message;
+  } finally {
+    qs("studentRefresh").disabled = false;
+  }
+}
+
+function setStudentSyncStatus(text, tone = "") {
+  qs("studentSyncStatus").textContent = text;
+  qs("studentSyncStatus").className = `pill${tone ? ` ${tone}` : ""}`;
 }
 
 function renderCards() {
@@ -1703,6 +1931,17 @@ qs("qaInput").addEventListener("keydown", (event) => {
   }
 });
 
+qs("studentAccessForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const token = qs("studentAccessToken").value.trim();
+  if (!token) return;
+  sessionStorage.setItem("studentViewToken", token);
+  qs("studentAccessToken").value = "";
+  loadStudents();
+});
+qs("studentSearch").addEventListener("input", renderStudents);
+qs("studentRefresh").addEventListener("click", () => loadStudents(true));
+
 qs("loginForm").addEventListener("submit", (event) => {
   event.preventDefault();
   applyRole();
@@ -1716,6 +1955,9 @@ qs("logout").addEventListener("click", () => {
   qs("app").classList.add("hidden");
   qs("loginPage").classList.remove("hidden");
   qs("qaLauncher").classList.add("hidden");
+  sessionStorage.removeItem("studentViewToken");
+  students = [];
+  studentsLoaded = false;
   closeQaPanel();
 });
 </script>

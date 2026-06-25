@@ -4,6 +4,11 @@ import { access, readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  getDingTalkStudents,
+  hasStudentSyncConfig,
+  isAuthorizedStudentRequest
+} from "./lib/dingtalk-students.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const rootDir = resolve(__dirname);
@@ -69,6 +74,20 @@ createServer(async (req, res) => {
       const result = await answerQuestion(body);
       await notifyDingTalk(body, result);
       return sendJson(res, result);
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/students") {
+      if (!hasStudentSyncConfig()) {
+        return sendJson(res, {
+          error: "钉钉学员同步尚未配置",
+          code: "STUDENT_SYNC_NOT_CONFIGURED"
+        }, 503);
+      }
+      if (!isAuthorizedStudentRequest(req.headers["x-student-view-token"])) {
+        return sendJson(res, { error: "访问口令不正确", code: "UNAUTHORIZED" }, 401);
+      }
+      const data = await getDingTalkStudents({ force: url.searchParams.get("refresh") === "1" });
+      return sendJson(res, data);
     }
 
     if (req.method === "GET" || req.method === "HEAD") {
@@ -639,6 +658,7 @@ function applyCors(req, res) {
   const allowedOrigins = new Set([
     "http://127.0.0.1:3000",
     "http://localhost:3000",
+    "https://naoki1762.github.io",
     "https://ytewdgujhvdss-cyber.github.io",
     "null"
   ]);
@@ -648,6 +668,6 @@ function applyCors(req, res) {
     res.setHeader("Vary", "Origin");
   }
 
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Student-View-Token");
 }

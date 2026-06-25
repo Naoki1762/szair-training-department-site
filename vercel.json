@@ -2,6 +2,9 @@
   "functions": {
     "api/qa/ask.js": {
       "maxDuration": 30
+    },
+    "api/students.js": {
+      "maxDuration": 30
     }
   }
 }

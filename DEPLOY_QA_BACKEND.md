@@ -164,3 +164,18 @@ curl -X POST http://localhost:3000/api/qa/ask \
 - `.env` 文件不要提交到 GitHub 仓库。
 - 不要把 Dify / ima / 钉钉的真实密钥写进前端代码或公开文档。
 - Render / Vercel 环境变量应标记为“Sensitive”或只在 Runtime 环境使用。
+
+## 在队学员钉钉同步
+
+“在队学员”页面从钉钉通讯录的“飞行学员管理室”读取成员。需要在钉钉开放平台创建企业内部应用，并申请通讯录部门、通讯录成员的只读权限。
+
+在 Render 服务环境变量中配置：
+
+```text
+DINGTALK_CLIENT_ID=企业内部应用的 AppKey
+DINGTALK_CLIENT_SECRET=企业内部应用的 AppSecret
+DINGTALK_STUDENT_DEPARTMENT_NAME=飞行学员管理室
+DINGTALK_STUDENT_VIEW_TOKEN=至少24位的随机访问口令
+```
+
+部署完成后，管理员把 `DINGTALK_STUDENT_VIEW_TOKEN` 单独提供给名单使用者。该口令不得写入 `index.html`、`assets/qa-config.js` 或提交到 GitHub。

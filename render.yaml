@@ -19,3 +19,11 @@ services:
         sync: false
       - key: IMA_KNOWLEDGE_BASE_ID
         sync: false
+      - key: DINGTALK_CLIENT_ID
+        sync: false
+      - key: DINGTALK_CLIENT_SECRET
+        sync: false
+      - key: DINGTALK_STUDENT_DEPARTMENT_NAME
+        value: 飞行学员管理室
+      - key: DINGTALK_STUDENT_VIEW_TOKEN
+        sync: false

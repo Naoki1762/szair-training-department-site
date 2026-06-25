@@ -82,8 +82,7 @@ function hasImaConfig() {
 
 async function askIma(question, body) {
   const baseUrl = (process.env.IMA_BASE_URL || "https://ima.qq.com/openapi/wiki/v1").replace(/\/$/, "");
-  const endpoint = `${baseUrl}/search_knowledge`;
-  const response = await fetch(endpoint, {
+  const response = await fetch(`${baseUrl}/search_knowledge`, {
     method: "POST",
     headers: {
       "ima-openapi-clientid": process.env.IMA_CLIENT_ID,
@@ -129,19 +128,90 @@ async function askIma(question, body) {
     .filter(Boolean)
     .slice(0, 3);
 
-  const answer = [
-    "在 IMA 知识库中检索到以下内容：",
-    "",
-    ...list.slice(0, 5).map((item, idx) => {
-      const lines = [`**${idx + 1}. ${item.title || "未命名文档"}**`];
-      if (item.highlight_content) {
-        lines.push(item.highlight_content.replace(/\s+/g, " ").trim());
-      }
-      return lines.join("\n");
-    })
-  ].join("\n");
+  const context = list.slice(0, 5).map((item, idx) => ({
+    index: idx + 1,
+    title: item.title || "未命名文档",
+    content: (item.highlight_content || "").replace(/\s+/g, " ").trim()
+  }));
+
+  let answer;
+  if (hasLlmConfig()) {
+    answer = await summarizeWithLlm(question, context);
+  } else {
+    answer = buildNaturalAnswer(question, context);
+  }
 
   return { answer, sources };
+}
+
+function hasLlmConfig() {
+  return process.env.LLM_API_KEY && process.env.LLM_API_URL;
+}
+
+async function summarizeWithLlm(question, context) {
+  const prompt = `你是深圳航空培训部的知识库助手。请根据下面从知识库中检索到的资料，用自然、简洁的中文回答用户的问题。如果资料不足以给出准确答案，请明确说明。回答中不要重复罗列文档标题，要给出总结性的解释。
+
+用户问题："""${question}"""
+
+检索到的资料：
+${context.map(c => `[${c.index}] ${c.title}\n${c.content || "（无摘要）"}`).join("\n\n")}
+
+请用中文给出自然语言回答：`;
+
+  const apiUrl = process.env.LLM_API_URL;
+  const model = process.env.LLM_MODEL || "gpt-4o-mini";
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.LLM_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: "你是一个专业的企业知识库问答助手，回答简洁、准确。" },
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.6,
+      max_tokens: 800
+    })
+  });
+
+  const text = await response.text();
+  let result;
+  try {
+    result = JSON.parse(text);
+  } catch {
+    throw new Error(`LLM summarization failed: ${response.status} ${text}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(`LLM summarization failed: ${response.status} ${JSON.stringify(result)}`);
+  }
+
+  return result.choices?.[0]?.message?.content
+    || result.result
+    || result.output
+    || result.text
+    || "（LLM 未返回有效内容）";
+}
+
+function buildNaturalAnswer(question, context) {
+  const mainPoints = context
+    .filter(c => c.content)
+    .map((c, idx) => {
+      const text = c.content.length > 180 ? c.content.slice(0, 180) + "……" : c.content;
+      return `${idx + 1}. ${c.title}：${text}`;
+    });
+
+  if (mainPoints.length === 0) {
+    return `关于"${question}"，我在知识库中找到了以下相关文档，但暂时缺少具体摘要内容：\n\n`
+      + context.map(c => `• ${c.title}`).join("\n");
+  }
+
+  return `关于"${question}"，我在知识库中找到了相关资料，总结如下：\n\n`
+    + mainPoints.join("\n\n")
+    + "\n\n如需更详细的说明，可以告诉我具体想深入了解哪一部分。";
 }
 
 async function askDify(question, body) {

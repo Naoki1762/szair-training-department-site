@@ -25,9 +25,16 @@ IMA_CLIENT_ID=560f1b66b1e25f0eb76a9944753f4b29
 IMA_API_KEY=xgEQ4ya/5/bnrAxXpuKAGEYiX9OlQpnqkw5HfUvQMLO6ocAknWMUF3JS6CHv38iY2ZzROmL/Kw==
 IMA_KNOWLEDGE_BASE_ID=494GjJV3RJkZ_flZSw2Hz0tOXHaBVnX-YtzcYQax2qw=
 IMA_BASE_URL=https://ima.qq.com/openapi/wiki/v1
+
+# 可选：启用 LLM 自然语言总结，让机器人回答更像人话
+# LLM_API_KEY=your_llm_api_key
+# LLM_API_URL=https://api.deepseek.com/v1/chat/completions
+# LLM_MODEL=deepseek-chat
 ```
 
 > 注意：`IMA_KNOWLEDGE_BASE_ID` 不是 ima 客户端里直接看到的那个 ID，而是通过 `get_addable_knowledge_base_list` 接口拿到的 `addable_knowledge_base_list[].id`。如果后续要换知识库，请重新调用该接口获取正确 ID。
+
+> 关于回答质量：默认情况下，后端会把 ima 搜索结果中的标题和高亮片段整理成一段自然语言总结。如果想让回答更流畅、更像人工总结，可以额外配置 LLM_API_KEY / LLM_API_URL / LLM_MODEL，后端会自动把搜索结果交给 LLM 生成最终答案。支持的接口需兼容 OpenAI Chat Completions 格式（如 DeepSeek、OpenAI、腾讯混元、Azure OpenAI 等）。
 
 ### 3. 等待部署完成
 

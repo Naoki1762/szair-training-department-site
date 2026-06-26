@@ -1562,7 +1562,6 @@ a { color: inherit; }
                 <span>管理员可在此主页对当前学员作风分进行加减分管理。</span>
               </div>
               <form class="score-form" id="conductForm">
-                <label><span>调整对象</span><input id="conductCurrentStudent" type="text" value="未选择" readonly></label>
                 <label><span>调整类型</span><select id="conductDeltaType"><option value="-">扣分</option><option value="+">加分</option></select></label>
                 <label><span>分值</span><input id="conductDeltaValue" type="number" min="1" max="30" value="1"></label>
                 <label><span>原因</span><textarea id="conductReason" placeholder="例如：训练纪律、请假规范、课堂表现等"></textarea></label>
@@ -2317,11 +2316,6 @@ function renderConductEditor() {
   qs("conductForm").classList.toggle("hidden", !canEditThisStudent);
   qs("conductEditStatus").textContent = canEditThisStudent ? "可调整" : "只读";
   qs("conductEditStatus").className = `pill${canEditThisStudent ? " green" : ""}`;
-  if (student) {
-    qs("conductCurrentStudent").value = `${student.name} · ${student.jobNumber || "--"} · ${student.conductRole === "admin" ? "部门行政人员" : (conductStages[student.conductStage] || "未分配")}`;
-  } else {
-    qs("conductCurrentStudent").value = "未选择";
-  }
   if (!editable) {
     qs("conductReadonly").querySelector("span").textContent = "管理员可在此主页对当前学员作风分进行加减分管理。";
   } else if (student?.conductRole === "admin") {

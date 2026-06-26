@@ -1513,7 +1513,6 @@ a { color: inherit; }
                     <option value="admin">部门行政人员</option>
                   </select>
                   <input id="conductSearch" type="search" placeholder="搜索姓名、工号或阶段" aria-label="搜索作风分数">
-                  <button class="btn" id="conductDemo" type="button">加载测试数据</button>
                 </div>
               </div>
               <p class="score-note">在队学员列表是基础数据。S1-S4 学员默认作风分 100 分；部门行政人员不计入学员作风分，只承担管理角色。</p>
@@ -1971,6 +1970,10 @@ function switchPage(id) {
     loadStudents();
   }
   if (id === "conduct") {
+    if (!studentsLoaded || students.length === 0) {
+      loadDemoStudents();
+      return;
+    }
     renderConductScores();
   }
   if (id === "studentProfile") {
@@ -2600,7 +2603,6 @@ qs("studentRefresh").addEventListener("click", () => {
   loadStudents(true);
 });
 qs("studentDemo").addEventListener("click", loadDemoStudents);
-qs("conductDemo").addEventListener("click", loadDemoStudents);
 qs("conductSearch").addEventListener("input", renderConductScores);
 qs("conductStageFilter").addEventListener("change", renderConductScores);
 qs("conductForm").addEventListener("submit", saveConductAdjustment);

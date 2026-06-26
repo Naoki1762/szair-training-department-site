@@ -5,6 +5,11 @@ import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  buildSiteRedirect,
+  buildDingTalkLoginUrl,
+  handleDingTalkLoginCallback
+} from "./lib/dingtalk-auth.js";
+import {
   getDingTalkStudents,
   hasStudentSyncConfig,
   isAuthorizedStudentRequest
@@ -88,6 +93,22 @@ createServer(async (req, res) => {
       }
       const data = await getDingTalkStudents({ force: url.searchParams.get("refresh") === "1" });
       return sendJson(res, data);
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/auth/dingtalk/start") {
+      const loginUrl = (() => {
+        try {
+          return buildDingTalkLoginUrl(req);
+        } catch (error) {
+          return buildSiteRedirect({ error: error.message || "钉钉一键登录尚未配置" });
+        }
+      })();
+      return redirect(res, loginUrl);
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/auth/dingtalk/callback") {
+      const targetUrl = await handleDingTalkLoginCallback(req, url.searchParams);
+      return redirect(res, targetUrl);
     }
 
     if (req.method === "GET" || req.method === "HEAD") {
@@ -651,6 +672,11 @@ async function serveStatic(pathname, res, headOnly = false) {
 function sendJson(res, data, status = 200) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(data));
+}
+
+function redirect(res, location, status = 302) {
+  res.writeHead(status, { Location: location });
+  res.end();
 }
 
 function applyCors(req, res) {

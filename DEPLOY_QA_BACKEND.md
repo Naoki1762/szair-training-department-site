@@ -179,3 +179,24 @@ DINGTALK_STUDENT_VIEW_TOKEN=至少24位的随机访问口令
 ```
 
 部署完成后，管理员把 `DINGTALK_STUDENT_VIEW_TOKEN` 单独提供给名单使用者。该口令不得写入 `index.html`、`assets/qa-config.js` 或提交到 GitHub。
+
+## 钉钉一键登录
+
+登录页的“钉钉一键登录”通过 Render 后端发起 OAuth 授权。钉钉开放平台的应用“安全设置”里需要添加回调地址：
+
+```text
+https://training-qa-api-naoki1762.onrender.com/api/auth/dingtalk/callback
+```
+
+在 Render 服务环境变量中补充：
+
+```text
+PUBLIC_SITE_URL=https://naoki1762.github.io/szair-training-department-site/
+DINGTALK_AUTH_REDIRECT_URI=https://training-qa-api-naoki1762.onrender.com/api/auth/dingtalk/callback
+DINGTALK_AUTH_SESSION_SECRET=至少32位的随机签名密钥
+DINGTALK_LOGIN_SCOPE=openid
+DINGTALK_ADMIN_USER_IDS=管理员钉钉userId1,管理员钉钉userId2
+DINGTALK_ADMIN_UNION_IDS=管理员钉钉unionId1,管理员钉钉unionId2
+```
+
+`DINGTALK_ADMIN_USER_IDS` 或 `DINGTALK_ADMIN_UNION_IDS` 命中的用户会进入管理员角色，可维护作风分数；其他钉钉登录用户默认进入学员角色，只能查看。

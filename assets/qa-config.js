@@ -9,3 +9,6 @@ window.TRAINING_QA_SHARED_KB_URL = window.TRAINING_QA_SHARED_KB_URL || "https://
 
 // 钉钉“飞行学员管理室”成员同步接口。
 window.TRAINING_STUDENTS_API_URL = window.TRAINING_STUDENTS_API_URL || "https://training-qa-api-naoki1762.onrender.com/api/students";
+
+// 钉钉 OAuth 一键登录入口。
+window.TRAINING_DINGTALK_LOGIN_URL = window.TRAINING_DINGTALK_LOGIN_URL || "https://training-qa-api-naoki1762.onrender.com/api/auth/dingtalk/start";

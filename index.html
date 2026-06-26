@@ -192,6 +192,39 @@ a { color: inherit; }
   font-weight: 800;
   box-shadow: 0 14px 28px rgba(221, 82, 78, .26);
 }
+.dingtalk-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 52px;
+  margin-top: 12px;
+  border: 1px solid #cdddf4;
+  border-radius: 999px;
+  color: #1257b7;
+  background: #f5f9ff;
+  font-size: 16px;
+  font-weight: 900;
+  text-decoration: none;
+}
+.dingtalk-login:hover {
+  border-color: #9fc2f3;
+  background: #eaf3ff;
+}
+.login-error {
+  display: none;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #b91c1c;
+  background: #fff1f2;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.login-error.visible {
+  display: block;
+}
 .login-note {
   margin-top: 22px;
   text-align: center;
@@ -1220,6 +1253,8 @@ a { color: inherit; }
       <label class="field"><span>◇</span><select id="role" aria-label="身份"></select></label>
       <div class="login-links"><a href="#">重置密码</a><a href="#">问题反馈</a></div>
       <button class="submit" type="submit">登录</button>
+      <a class="dingtalk-login" id="dingtalkLogin" href="#">钉钉一键登录</a>
+      <div class="login-error" id="loginError"></div>
       <div class="login-note">飞训中心智慧培训入口</div>
     </form>
   </div>
@@ -1792,6 +1827,7 @@ let students = [];
 let studentsLoaded = false;
 let studentDataMode = "none";
 let selectedConductStudentId = "";
+let currentUser = null;
 
 function qs(id) {
   return document.getElementById(id);
@@ -1803,11 +1839,23 @@ function renderRoleSelect() {
 }
 
 function applyRole() {
-  const role = roles.find(item => item.id === qs("role").value) || roles[0];
+  const role = getCurrentRole();
   qs("sideAvatar").textContent = role.avatar;
   qs("sideName").textContent = role.name;
   qs("sideRole").textContent = role.role;
   if (!qs("app").classList.contains("hidden")) renderConductScores();
+}
+
+function getCurrentRole() {
+  if (currentUser) {
+    return {
+      id: currentUser.role || "student",
+      name: currentUser.name || "钉钉用户",
+      role: currentUser.roleName || (currentUser.role === "manager" ? "部门行政人员" : "飞行学员"),
+      avatar: (currentUser.name || "钉").slice(0, 1)
+    };
+  }
+  return roles.find(item => item.id === qs("role").value) || roles[0];
 }
 
 function renderNav() {
@@ -1837,6 +1885,72 @@ function escapeHtml(value) {
     '"': "&quot;",
     "'": "&#39;"
   })[char]);
+}
+
+function decodeBase64Url(value) {
+  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(normalized.length + ((4 - normalized.length % 4) % 4), "=");
+  const bytes = Uint8Array.from(atob(padded), char => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function parseDingTalkSession(token) {
+  const encoded = String(token || "").split(".")[0];
+  if (!encoded) return null;
+  try {
+    const payload = JSON.parse(decodeBase64Url(encoded));
+    if (payload.exp && Date.now() > Number(payload.exp)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function setLoginError(message = "") {
+  qs("loginError").textContent = message;
+  qs("loginError").classList.toggle("visible", Boolean(message));
+}
+
+function enterApp() {
+  applyRole();
+  qs("loginPage").classList.add("hidden");
+  qs("app").classList.remove("hidden");
+  qs("qaLauncher").classList.remove("hidden");
+  switchPage("dashboard");
+}
+
+function setupDingTalkLogin() {
+  qs("dingtalkLogin").href = window.TRAINING_DINGTALK_LOGIN_URL || "/api/auth/dingtalk/start";
+
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const error = params.get("dingtalk_error");
+  const token = params.get("dingtalk_session");
+  if (error) {
+    setLoginError(error);
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    return;
+  }
+  if (!token) return;
+
+  const session = parseDingTalkSession(token);
+  history.replaceState(null, "", window.location.pathname + window.location.search);
+  if (!session) {
+    setLoginError("钉钉登录票据已失效，请重新登录。");
+    return;
+  }
+  currentUser = session;
+  sessionStorage.setItem("trainingDingTalkSession", token);
+  enterApp();
+}
+
+function restoreDingTalkSession() {
+  const token = sessionStorage.getItem("trainingDingTalkSession");
+  const session = parseDingTalkSession(token);
+  if (!session) {
+    sessionStorage.removeItem("trainingDingTalkSession");
+    return;
+  }
+  currentUser = session;
 }
 
 function renderStudents() {
@@ -1964,7 +2078,8 @@ function setStudentSyncStatus(text, tone = "") {
 }
 
 function canManageConduct() {
-  return ["duan", "manager"].includes(qs("role").value);
+  const roleId = currentUser?.role || qs("role").value;
+  return ["duan", "manager"].includes(roleId);
 }
 
 function ensureConductModel() {
@@ -2281,10 +2396,12 @@ async function submitQaQuestion(event) {
 renderRoleSelect();
 renderNav();
 renderCards();
+restoreDingTalkSession();
 applyRole();
 tick();
 setInterval(tick, 30000);
 startResourceCarousel();
+setupDingTalkLogin();
 
 document.body.addEventListener("click", (event) => {
   const go = event.target.closest("[data-go]");
@@ -2341,11 +2458,10 @@ qs("role").addEventListener("change", () => {
 
 qs("loginForm").addEventListener("submit", (event) => {
   event.preventDefault();
-  applyRole();
-  qs("loginPage").classList.add("hidden");
-  qs("app").classList.remove("hidden");
-  qs("qaLauncher").classList.remove("hidden");
-  switchPage("dashboard");
+  currentUser = null;
+  sessionStorage.removeItem("trainingDingTalkSession");
+  setLoginError("");
+  enterApp();
 });
 
 qs("logout").addEventListener("click", () => {
@@ -2353,6 +2469,8 @@ qs("logout").addEventListener("click", () => {
   qs("loginPage").classList.remove("hidden");
   qs("qaLauncher").classList.add("hidden");
   sessionStorage.removeItem("studentViewToken");
+  sessionStorage.removeItem("trainingDingTalkSession");
+  currentUser = null;
   students = [];
   studentsLoaded = false;
   studentDataMode = "none";

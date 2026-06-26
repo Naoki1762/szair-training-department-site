@@ -27,3 +27,13 @@ services:
         value: 飞行学员管理室
       - key: DINGTALK_STUDENT_VIEW_TOKEN
         sync: false
+      - key: PUBLIC_SITE_URL
+        value: https://naoki1762.github.io/szair-training-department-site/
+      - key: DINGTALK_AUTH_REDIRECT_URI
+        value: https://training-qa-api-naoki1762.onrender.com/api/auth/dingtalk/callback
+      - key: DINGTALK_AUTH_SESSION_SECRET
+        sync: false
+      - key: DINGTALK_ADMIN_USER_IDS
+        sync: false
+      - key: DINGTALK_ADMIN_UNION_IDS
+        sync: false

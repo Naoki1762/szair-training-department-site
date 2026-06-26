@@ -495,6 +495,8 @@ a { color: inherit; }
 }
 .pill.red { background: #fff1f1; color: var(--red); }
 .pill.green { background: #ebf8f0; color: var(--green); }
+.pill.orange { background: #fff7ed; color: #c2410c; }
+.pill.amber { background: #fffbeb; color: #a16207; }
 
 .metric {
   padding: 16px;
@@ -820,6 +822,17 @@ a { color: inherit; }
 }
 .person-detail-item strong {
   font-size: 15px;
+}
+.score-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.score-value .pill {
+  min-height: 24px;
+  font-size: 11px;
+  font-style: normal;
 }
 .record-list {
   display: grid;
@@ -2269,6 +2282,16 @@ function renderConductScores() {
   qs("conductEmptyState").classList.toggle("hidden", rows.length > 0);
 }
 
+function getConductScoreStatus(score) {
+  const value = Number(score);
+  if (value <= 70) return { text: "停飞处理", tone: "red" };
+  if (value <= 80) return { text: "部门谈话", tone: "orange" };
+  if (value <= 90) return { text: "科室谈话", tone: "amber" };
+  if (value >= 110) return { text: "杰出", tone: "green" };
+  if (value >= 100) return { text: "优秀", tone: "green" };
+  return { text: "正常", tone: "" };
+}
+
 function renderConductPersonDetail() {
   const student = students.find(item => item.userId === selectedConductDetailId);
   if (!student) {
@@ -2287,6 +2310,7 @@ function renderConductPersonDetail() {
   const roleText = isAdmin ? "部门行政人员" : "学员";
   const stageText = isAdmin ? "行政" : (conductStages[student.conductStage] || "未分配");
   const scoreText = isAdmin ? "不计分" : `${Number(student.conductScore || 0)} 分`;
+  const scoreStatus = isAdmin ? null : getConductScoreStatus(student.conductScore || 0);
   const records = (student.conductRecords || []).slice(0, 5);
   qs("profileTitle").textContent = `${student.name} 信息主页`;
   if (activePage === "studentProfile") qs("pageTitle").textContent = `${student.name} 信息主页`;
@@ -2299,7 +2323,7 @@ function renderConductPersonDetail() {
       <div class="person-detail-item"><span>角色</span><strong>${escapeHtml(roleText)}</strong></div>
       <div class="person-detail-item"><span>阶段</span><strong>${escapeHtml(stageText)}</strong></div>
       <div class="person-detail-item"><span>岗位</span><strong>${escapeHtml(student.title || "--")}</strong></div>
-      <div class="person-detail-item"><span>当前作风分数</span><strong>${escapeHtml(scoreText)}</strong></div>
+      <div class="person-detail-item"><span>当前作风分数</span><strong class="score-value">${escapeHtml(scoreText)}${scoreStatus ? `<em class="pill ${escapeHtml(scoreStatus.tone)}">${escapeHtml(scoreStatus.text)}</em>` : ""}</strong></div>
       <div class="person-detail-item"><span>钉钉状态</span><strong>${student.active ? "正常" : "停用"}</strong></div>
       <div class="person-detail-item"><span>工号</span><strong>${escapeHtml(student.jobNumber || "--")}</strong></div>
     </div>

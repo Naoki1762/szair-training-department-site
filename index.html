@@ -641,6 +641,8 @@ a { color: inherit; }
 }
 .student-table-wrap { overflow-x: auto; }
 .student-table-wrap .table { min-width: 680px; }
+.score-table-wrap { overflow-x: auto; }
+.score-table-wrap .table { min-width: 920px; }
 .student-person {
   display: flex;
   align-items: center;
@@ -664,6 +666,81 @@ a { color: inherit; }
   gap: 8px 18px;
   color: var(--muted);
   font-size: 13px;
+}
+.score-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 18px;
+}
+.score-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.score-controls select,
+.score-controls input,
+.score-form select,
+.score-form input,
+.score-form textarea {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: 0;
+  background: white;
+  color: var(--text);
+}
+.score-controls input { width: min(280px, 100%); }
+.score-form {
+  display: grid;
+  gap: 10px;
+}
+.score-form textarea {
+  height: 84px;
+  padding-top: 10px;
+  resize: vertical;
+}
+.score-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+.score-form label > span { color: var(--muted); }
+.score-summary {
+  display: grid;
+  gap: 10px;
+}
+.score-delta {
+  font-weight: 900;
+}
+.score-delta.good { color: #047857; }
+.score-delta.bad { color: #b91c1c; }
+.score-actions {
+  display: flex;
+  gap: 8px;
+}
+.score-actions .btn {
+  min-width: 92px;
+}
+.score-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.score-readonly {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
 }
 
 .org-grid {
@@ -1106,6 +1183,15 @@ a { color: inherit; }
     flex-direction: column;
   }
   .student-demo .btn { width: 100%; }
+  .score-layout { grid-template-columns: 1fr; }
+  .score-controls {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+  .score-controls select,
+  .score-controls input,
+  .score-controls .btn { width: 100%; }
   .qa-launcher {
     right: 14px;
     bottom: 14px;
@@ -1287,6 +1373,74 @@ a { color: inherit; }
         </div>
       </section>
 
+      <section class="page" id="conduct">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head">
+              <h3>学员作风分数</h3>
+              <span class="pill green" id="conductPermission">只读</span>
+            </div>
+            <div class="card-body">
+              <div class="student-toolbar">
+                <div class="student-meta">
+                  <span>基础分：<strong>100</strong></span>
+                  <span>学员：<strong id="conductStudentCount">--</strong> 人</span>
+                  <span>行政人员：<strong id="conductAdminCount">--</strong> 人</span>
+                  <span>平均分：<strong id="conductAverage">--</strong></span>
+                </div>
+                <div class="score-controls">
+                  <select id="conductStageFilter" aria-label="阶段筛选">
+                    <option value="all">全部阶段</option>
+                    <option value="S1">S1 未下航校</option>
+                    <option value="S2">S2 在航校</option>
+                    <option value="S3">S3 在队训练</option>
+                    <option value="S4">S4 等待本场</option>
+                    <option value="admin">部门行政人员</option>
+                  </select>
+                  <input id="conductSearch" type="search" placeholder="搜索姓名、工号或阶段" aria-label="搜索作风分数">
+                  <button class="btn" id="conductDemo" type="button">加载测试数据</button>
+                </div>
+              </div>
+              <p class="score-note">在队学员列表是基础数据。S1-S4 学员默认作风分 100 分；部门行政人员不计入学员作风分，只承担管理角色。</p>
+            </div>
+          </div>
+
+          <div class="score-layout">
+            <div class="card">
+              <div class="card-head"><h3>作风分台账</h3><span class="pill" id="conductLedgerStatus">等待数据</span></div>
+              <div class="card-body">
+                <div class="score-table-wrap">
+                  <table class="table">
+                    <thead><tr><th>人员</th><th>工号</th><th>阶段/角色</th><th>作风分</th><th>最近记录</th><th>权限</th></tr></thead>
+                    <tbody id="conductTable"></tbody>
+                  </table>
+                </div>
+                <div class="student-state hidden" id="conductEmptyState">
+                  <div><strong>暂无可显示数据</strong><span>请先加载测试名单，或调整搜索与阶段筛选。</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head"><h3>分数调整</h3><span class="pill" id="conductEditStatus">权限检测</span></div>
+              <div class="card-body">
+                <div class="score-readonly hidden" id="conductReadonly">
+                  <strong>当前身份仅可查看</strong>
+                  <span>切换为飞训中心主任或培训部管理人员后，可对学员作风分进行加减分管理。</span>
+                </div>
+                <form class="score-form" id="conductForm">
+                  <label><span>学员</span><select id="conductStudentSelect"></select></label>
+                  <label><span>调整类型</span><select id="conductDeltaType"><option value="-">扣分</option><option value="+">加分</option></select></label>
+                  <label><span>分值</span><input id="conductDeltaValue" type="number" min="1" max="30" value="1"></label>
+                  <label><span>原因</span><textarea id="conductReason" placeholder="例如：训练纪律、请假规范、课堂表现等"></textarea></label>
+                  <button class="btn primary" type="submit">保存调整</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="page" id="assetsCenter">
         <div class="section-stack">
           <div class="card">
@@ -1412,12 +1566,14 @@ a { color: inherit; }
 const roles = [
   { id: "duan", name: "段超", role: "飞训中心主任", avatar: "段" },
   { id: "manager", name: "培训管理岗", role: "培训部管理人员", avatar: "管" },
-  { id: "teacher", name: "教员用户", role: "培训教员", avatar: "教" }
+  { id: "teacher", name: "教员用户", role: "培训教员", avatar: "教" },
+  { id: "student", name: "学员用户", role: "飞行学员", avatar: "学" }
 ];
 
 const navItems = [
   ["dashboard", "工作台"],
   ["students", "在队学员"],
+  ["conduct", "作风分数"],
   ["courseware", "AI课件助手"],
   ["faculty", "教员资质"],
   ["assetsCenter", "数字资产中心"],
@@ -1618,6 +1774,15 @@ const phaseOne = [
   ["手工录入底数", "人工录入不丢人，关键是先把数据体系建立起来。", "务实推进"]
 ];
 
+const conductStages = {
+  S1: "S1 未下航校",
+  S2: "S2 在航校",
+  S3: "S3 在队训练",
+  S4: "S4 等待本场"
+};
+
+const conductAdminIndexes = new Set([6, 28, 73, 119, 166, 214, 271]);
+
 let activePage = "dashboard";
 let activeResourceSlide = 0;
 let resourceTimer = null;
@@ -1626,6 +1791,7 @@ let qaBusy = false;
 let students = [];
 let studentsLoaded = false;
 let studentDataMode = "none";
+let selectedConductStudentId = "";
 
 function qs(id) {
   return document.getElementById(id);
@@ -1641,11 +1807,12 @@ function applyRole() {
   qs("sideAvatar").textContent = role.avatar;
   qs("sideName").textContent = role.name;
   qs("sideRole").textContent = role.role;
+  if (!qs("app").classList.contains("hidden")) renderConductScores();
 }
 
 function renderNav() {
   qs("nav").innerHTML = navItems.map(([id, label]) => (
-    `<button class="${activePage === id ? "active" : ""}" data-go="${id}"><span>${label}</span>${id === "students" ? "<em>钉钉</em>" : id === "courseware" ? "<em>重点</em>" : id === "faculty" ? "<em>优先</em>" : id === "assetsCenter" ? "<em>资产</em>" : ""}</button>`
+    `<button class="${activePage === id ? "active" : ""}" data-go="${id}"><span>${label}</span>${id === "students" ? "<em>基础</em>" : id === "conduct" ? "<em>作风</em>" : id === "courseware" ? "<em>重点</em>" : id === "faculty" ? "<em>优先</em>" : id === "assetsCenter" ? "<em>资产</em>" : ""}</button>`
   )).join("");
 }
 
@@ -1656,6 +1823,9 @@ function switchPage(id) {
   renderNav();
   if (id === "students" && !studentsLoaded && sessionStorage.getItem("studentViewToken")) {
     loadStudents();
+  }
+  if (id === "conduct") {
+    renderConductScores();
   }
 }
 
@@ -1702,17 +1872,23 @@ function createDemoStudents() {
     "睿哲", "承泽", "泽楷", "致远", "弘毅"
   ];
   const titles = ["飞行学员", "航线运输驾驶员学员", "理论训练学员", "模拟机训练学员"];
+  const stageKeys = Object.keys(conductStages);
 
   return surnames.flatMap((surname, surnameIndex) => (
     givenNames.map((givenName, givenNameIndex) => {
       const index = surnameIndex * givenNames.length + givenNameIndex;
+      const isConductAdmin = conductAdminIndexes.has(index);
       return {
         userId: `demo-${String(index + 1).padStart(3, "0")}`,
         name: `${surname}${givenName}`,
-        title: titles[index % titles.length],
+        title: isConductAdmin ? "部门行政人员" : titles[index % titles.length],
         jobNumber: `FL${String(2026001 + index)}`,
         active: (index + 1) % 29 !== 0,
-        avatar: ""
+        avatar: "",
+        conductRole: isConductAdmin ? "admin" : "student",
+        conductStage: isConductAdmin ? "" : stageKeys[index % stageKeys.length],
+        conductScore: isConductAdmin ? null : 100,
+        conductRecords: []
       };
     })
   ));
@@ -1730,6 +1906,7 @@ function loadDemoStudents() {
   qs("studentSearch").value = "";
   setStudentSyncStatus("测试名单", "red");
   renderStudents();
+  renderConductScores();
 }
 
 async function loadStudents(force = false) {
@@ -1766,6 +1943,7 @@ async function loadStudents(force = false) {
     qs("studentListPanel").classList.remove("hidden");
     setStudentSyncStatus("同步完成", "green");
     renderStudents();
+    renderConductScores();
   } catch (error) {
     studentsLoaded = false;
     setStudentSyncStatus("同步失败", "red");
@@ -1783,6 +1961,137 @@ async function loadStudents(force = false) {
 function setStudentSyncStatus(text, tone = "") {
   qs("studentSyncStatus").textContent = text;
   qs("studentSyncStatus").className = `pill${tone ? ` ${tone}` : ""}`;
+}
+
+function canManageConduct() {
+  return ["duan", "manager"].includes(qs("role").value);
+}
+
+function ensureConductModel() {
+  const stageKeys = Object.keys(conductStages);
+  students = students.map((student, index) => {
+    if (student.conductRole) return student;
+    return {
+      ...student,
+      conductRole: "student",
+      conductStage: stageKeys[index % stageKeys.length],
+      conductScore: 100,
+      conductRecords: []
+    };
+  });
+}
+
+function getConductRows() {
+  ensureConductModel();
+  const keyword = qs("conductSearch").value.trim().toLowerCase();
+  const stage = qs("conductStageFilter").value;
+  return students.filter(student => {
+    const roleMatched = stage === "all"
+      || (stage === "admin" && student.conductRole === "admin")
+      || student.conductStage === stage;
+    const textMatched = !keyword
+      || student.name.toLowerCase().includes(keyword)
+      || String(student.jobNumber || "").toLowerCase().includes(keyword)
+      || String(student.title || "").toLowerCase().includes(keyword)
+      || String(student.conductStage || "").toLowerCase().includes(keyword);
+    return roleMatched && textMatched;
+  });
+}
+
+function renderConductScores() {
+  if (!studentsLoaded || students.length === 0) {
+    qs("conductTable").innerHTML = "";
+    qs("conductStudentCount").textContent = "--";
+    qs("conductAdminCount").textContent = "--";
+    qs("conductAverage").textContent = "--";
+    qs("conductLedgerStatus").textContent = "等待数据";
+    qs("conductEmptyState").classList.remove("hidden");
+    renderConductEditor();
+    return;
+  }
+
+  const editable = canManageConduct();
+  qs("conductPermission").textContent = editable ? "管理可编辑" : "学员只读";
+  qs("conductPermission").className = `pill${editable ? " green" : ""}`;
+  qs("conductEditStatus").textContent = editable ? "可调整" : "只读";
+  qs("conductEditStatus").className = `pill${editable ? " green" : ""}`;
+
+  const rows = getConductRows();
+  const learnerRows = students.filter(student => student.conductRole !== "admin");
+  const adminRows = students.filter(student => student.conductRole === "admin");
+  const average = learnerRows.length
+    ? learnerRows.reduce((sum, student) => sum + Number(student.conductScore || 0), 0) / learnerRows.length
+    : 0;
+
+  qs("conductStudentCount").textContent = String(learnerRows.length);
+  qs("conductAdminCount").textContent = String(adminRows.length);
+  qs("conductAverage").textContent = learnerRows.length ? average.toFixed(1) : "--";
+  qs("conductLedgerStatus").textContent = `${rows.length} 条`;
+
+  qs("conductTable").innerHTML = rows.map(student => {
+    const isAdmin = student.conductRole === "admin";
+    const latest = student.conductRecords?.[0];
+    const latestText = latest
+      ? `${latest.type}${latest.value}：${latest.reason || "未填写原因"}`
+      : "暂无记录";
+    const score = isAdmin ? "不计分" : `<strong>${Number(student.conductScore || 0)}</strong>`;
+    const roleText = isAdmin ? "部门行政人员" : conductStages[student.conductStage] || "未分配阶段";
+    return `<tr>
+      <td><div class="student-person"><div class="avatar">${escapeHtml(student.name.slice(0, 1) || "学")}</div><strong>${escapeHtml(student.name)}</strong></div></td>
+      <td>${escapeHtml(student.jobNumber || "--")}</td>
+      <td>${escapeHtml(roleText)}</td>
+      <td>${score}</td>
+      <td>${escapeHtml(latestText)}</td>
+      <td><span class="pill ${isAdmin ? "red" : "green"}">${isAdmin ? "管理" : "查看"}</span></td>
+    </tr>`;
+  }).join("");
+  qs("conductEmptyState").classList.toggle("hidden", rows.length > 0);
+  renderConductEditor();
+}
+
+function renderConductEditor() {
+  const editable = canManageConduct();
+  qs("conductReadonly").classList.toggle("hidden", editable);
+  qs("conductForm").classList.toggle("hidden", !editable);
+
+  const learnerRows = students.filter(student => student.conductRole !== "admin");
+  if (!selectedConductStudentId && learnerRows[0]) selectedConductStudentId = learnerRows[0].userId;
+  qs("conductStudentSelect").innerHTML = learnerRows.map(student => (
+    `<option value="${escapeHtml(student.userId)}">${escapeHtml(student.name)} · ${escapeHtml(conductStages[student.conductStage] || "未分配阶段")} · ${Number(student.conductScore || 0)}分</option>`
+  )).join("");
+  if (selectedConductStudentId && learnerRows.some(student => student.userId === selectedConductStudentId)) {
+    qs("conductStudentSelect").value = selectedConductStudentId;
+  }
+}
+
+function saveConductAdjustment(event) {
+  event.preventDefault();
+  if (!canManageConduct()) return;
+  const studentId = qs("conductStudentSelect").value;
+  const value = Math.max(1, Math.min(30, Number(qs("conductDeltaValue").value) || 1));
+  const type = qs("conductDeltaType").value === "+" ? "+" : "-";
+  const reason = qs("conductReason").value.trim() || "手工调整";
+  students = students.map(student => {
+    if (student.userId !== studentId || student.conductRole === "admin") return student;
+    const delta = type === "+" ? value : -value;
+    const nextScore = Math.max(0, Math.min(120, Number(student.conductScore || 100) + delta));
+    const record = {
+      type,
+      value,
+      reason,
+      operator: qs("sideName").textContent,
+      time: new Date().toLocaleString("zh-CN", { hour12: false })
+    };
+    return {
+      ...student,
+      conductScore: nextScore,
+      conductRecords: [record, ...(student.conductRecords || [])]
+    };
+  });
+  selectedConductStudentId = studentId;
+  qs("conductReason").value = "";
+  qs("conductDeltaValue").value = "1";
+  renderConductScores();
 }
 
 function renderCards() {
@@ -2018,6 +2327,17 @@ qs("studentRefresh").addEventListener("click", () => {
   loadStudents(true);
 });
 qs("studentDemo").addEventListener("click", loadDemoStudents);
+qs("conductDemo").addEventListener("click", loadDemoStudents);
+qs("conductSearch").addEventListener("input", renderConductScores);
+qs("conductStageFilter").addEventListener("change", renderConductScores);
+qs("conductStudentSelect").addEventListener("change", () => {
+  selectedConductStudentId = qs("conductStudentSelect").value;
+});
+qs("conductForm").addEventListener("submit", saveConductAdjustment);
+qs("role").addEventListener("change", () => {
+  if (!qs("loginPage").classList.contains("hidden")) return;
+  applyRole();
+});
 
 qs("loginForm").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -2036,6 +2356,7 @@ qs("logout").addEventListener("click", () => {
   students = [];
   studentsLoaded = false;
   studentDataMode = "none";
+  selectedConductStudentId = "";
   closeQaPanel();
 });
 </script>

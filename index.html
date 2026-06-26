@@ -1520,51 +1520,54 @@ a { color: inherit; }
             </div>
           </div>
 
-          <div class="score-layout">
-            <div class="card">
-              <div class="card-head"><h3>作风分台账</h3><span class="pill" id="conductLedgerStatus">等待数据</span></div>
-              <div class="card-body">
-                <div class="score-table-wrap">
-                  <table class="table">
-                    <thead><tr><th>人员</th><th>工号</th><th>阶段/角色</th><th>作风分</th><th>最近记录</th><th>权限</th></tr></thead>
-                    <tbody id="conductTable"></tbody>
-                  </table>
-                </div>
-                <div class="student-state hidden" id="conductEmptyState">
-                  <div><strong>暂无可显示数据</strong><span>请先加载测试名单，或调整搜索与阶段筛选。</span></div>
+          <div class="card">
+            <div class="card-head"><h3>作风分台账</h3><span class="pill" id="conductLedgerStatus">等待数据</span></div>
+            <div class="card-body">
+              <div class="score-table-wrap">
+                <table class="table">
+                  <thead><tr><th>人员</th><th>工号</th><th>阶段/角色</th><th>作风分</th><th>最近记录</th><th>权限</th></tr></thead>
+                  <tbody id="conductTable"></tbody>
+                </table>
+              </div>
+              <div class="student-state hidden" id="conductEmptyState">
+                <div><strong>暂无可显示数据</strong><span>请先加载测试名单，或调整搜索与阶段筛选。</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="studentProfile">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head">
+              <h3 id="profileTitle">学员信息主页</h3>
+              <button class="btn" type="button" data-go="conduct">返回台账</button>
+            </div>
+            <div class="card-body">
+              <div class="person-detail" id="conductPersonDetail">
+                <div class="score-readonly">
+                  <strong>暂无人员信息</strong>
+                  <span>请从作风分台账点击人员姓名进入学员信息主页。</span>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="score-side">
-              <div class="card">
-                <div class="card-head"><h3>人员详情</h3><span class="pill" id="conductDetailStatus">未选择</span></div>
-                <div class="card-body">
-                  <div class="person-detail" id="conductPersonDetail">
-                    <div class="score-readonly">
-                      <strong>选择一名人员</strong>
-                      <span>点击台账中的人员姓名查看基础信息、阶段、角色、分数和最近作风记录。</span>
-                    </div>
-                  </div>
-                </div>
+          <div class="card">
+            <div class="card-head"><h3>作风分调整</h3><span class="pill" id="conductEditStatus">权限检测</span></div>
+            <div class="card-body">
+              <div class="score-readonly hidden" id="conductReadonly">
+                <strong>当前身份仅可查看</strong>
+                <span>管理员可在此主页对当前学员作风分进行加减分管理。</span>
               </div>
-
-              <div class="card">
-                <div class="card-head"><h3>分数调整</h3><span class="pill" id="conductEditStatus">权限检测</span></div>
-                <div class="card-body">
-                  <div class="score-readonly hidden" id="conductReadonly">
-                    <strong>当前身份仅可查看</strong>
-                    <span>切换为飞训中心主任或培训部管理人员后，可对学员作风分进行加减分管理。</span>
-                  </div>
-                  <form class="score-form" id="conductForm">
-                    <label><span>学员</span><select id="conductStudentSelect"></select></label>
-                    <label><span>调整类型</span><select id="conductDeltaType"><option value="-">扣分</option><option value="+">加分</option></select></label>
-                    <label><span>分值</span><input id="conductDeltaValue" type="number" min="1" max="30" value="1"></label>
-                    <label><span>原因</span><textarea id="conductReason" placeholder="例如：训练纪律、请假规范、课堂表现等"></textarea></label>
-                    <button class="btn primary" type="submit">保存调整</button>
-                  </form>
-                </div>
-              </div>
+              <form class="score-form" id="conductForm">
+                <label><span>调整对象</span><input id="conductCurrentStudent" type="text" value="未选择" readonly></label>
+                <label><span>调整类型</span><select id="conductDeltaType"><option value="-">扣分</option><option value="+">加分</option></select></label>
+                <label><span>分值</span><input id="conductDeltaValue" type="number" min="1" max="30" value="1"></label>
+                <label><span>原因</span><textarea id="conductReason" placeholder="例如：训练纪律、请假规范、课堂表现等"></textarea></label>
+                <button class="btn primary" type="submit">保存调整</button>
+              </form>
             </div>
           </div>
         </div>
@@ -1920,7 +1923,6 @@ let qaBusy = false;
 let students = [];
 let studentsLoaded = false;
 let studentDataMode = "none";
-let selectedConductStudentId = "";
 let selectedConductDetailId = "";
 let currentUser = null;
 
@@ -1962,13 +1964,19 @@ function renderNav() {
 function switchPage(id) {
   activePage = id;
   document.querySelectorAll(".page").forEach(page => page.classList.toggle("active", page.id === id));
-  qs("pageTitle").textContent = navItems.find(item => item[0] === id)?.[1] || "工作台";
+  qs("pageTitle").textContent = id === "studentProfile"
+    ? "学员信息主页"
+    : (navItems.find(item => item[0] === id)?.[1] || "工作台");
   renderNav();
   if (id === "students" && !studentsLoaded && sessionStorage.getItem("studentViewToken")) {
     loadStudents();
   }
   if (id === "conduct") {
     renderConductScores();
+  }
+  if (id === "studentProfile") {
+    renderConductPersonDetail();
+    renderConductEditor();
   }
 }
 
@@ -2218,8 +2226,6 @@ function renderConductScores() {
     qs("conductAverage").textContent = "--";
     qs("conductLedgerStatus").textContent = "等待数据";
     qs("conductEmptyState").classList.remove("hidden");
-    renderConductPersonDetail();
-    renderConductEditor();
     return;
   }
 
@@ -2259,22 +2265,17 @@ function renderConductScores() {
     </tr>`;
   }).join("");
   qs("conductEmptyState").classList.toggle("hidden", rows.length > 0);
-  if (selectedConductDetailId && !students.some(student => student.userId === selectedConductDetailId)) {
-    selectedConductDetailId = "";
-  }
-  renderConductPersonDetail();
-  renderConductEditor();
 }
 
 function renderConductPersonDetail() {
   const student = students.find(item => item.userId === selectedConductDetailId);
   if (!student) {
-    qs("conductDetailStatus").textContent = "未选择";
-    qs("conductDetailStatus").className = "pill";
+    qs("profileTitle").textContent = "学员信息主页";
+    if (activePage === "studentProfile") qs("pageTitle").textContent = "学员信息主页";
     qs("conductPersonDetail").innerHTML = `
       <div class="score-readonly">
-        <strong>选择一名人员</strong>
-        <span>点击台账中的人员姓名查看基础信息、阶段、角色、分数和最近作风记录。</span>
+        <strong>暂无人员信息</strong>
+        <span>请从作风分台账点击人员姓名进入学员信息主页。</span>
       </div>
     `;
     return;
@@ -2285,8 +2286,8 @@ function renderConductPersonDetail() {
   const stageText = isAdmin ? "行政" : (conductStages[student.conductStage] || "未分配");
   const scoreText = isAdmin ? "不计分" : `${Number(student.conductScore || 0)} 分`;
   const records = (student.conductRecords || []).slice(0, 5);
-  qs("conductDetailStatus").textContent = isAdmin ? "管理" : stageText;
-  qs("conductDetailStatus").className = `pill${isAdmin ? " red" : " green"}`;
+  qs("profileTitle").textContent = `${student.name} 信息主页`;
+  if (activePage === "studentProfile") qs("pageTitle").textContent = `${student.name} 信息主页`;
   qs("conductPersonDetail").innerHTML = `
     <div class="person-detail-head">
       <div class="avatar">${escapeHtml(student.name.slice(0, 1) || "学")}</div>
@@ -2310,23 +2311,32 @@ function renderConductPersonDetail() {
 
 function renderConductEditor() {
   const editable = canManageConduct();
-  qs("conductReadonly").classList.toggle("hidden", editable);
-  qs("conductForm").classList.toggle("hidden", !editable);
-
-  const learnerRows = students.filter(student => student.conductRole !== "admin");
-  if (!selectedConductStudentId && learnerRows[0]) selectedConductStudentId = learnerRows[0].userId;
-  qs("conductStudentSelect").innerHTML = learnerRows.map(student => (
-    `<option value="${escapeHtml(student.userId)}">${escapeHtml(student.name)} · ${escapeHtml(conductStages[student.conductStage] || "未分配阶段")} · ${Number(student.conductScore || 0)}分</option>`
-  )).join("");
-  if (selectedConductStudentId && learnerRows.some(student => student.userId === selectedConductStudentId)) {
-    qs("conductStudentSelect").value = selectedConductStudentId;
+  const student = students.find(item => item.userId === selectedConductDetailId);
+  const canEditThisStudent = editable && student && student.conductRole !== "admin";
+  qs("conductReadonly").classList.toggle("hidden", canEditThisStudent);
+  qs("conductForm").classList.toggle("hidden", !canEditThisStudent);
+  qs("conductEditStatus").textContent = canEditThisStudent ? "可调整" : "只读";
+  qs("conductEditStatus").className = `pill${canEditThisStudent ? " green" : ""}`;
+  if (student) {
+    qs("conductCurrentStudent").value = `${student.name} · ${student.jobNumber || "--"} · ${student.conductRole === "admin" ? "部门行政人员" : (conductStages[student.conductStage] || "未分配")}`;
+  } else {
+    qs("conductCurrentStudent").value = "未选择";
+  }
+  if (!editable) {
+    qs("conductReadonly").querySelector("span").textContent = "管理员可在此主页对当前学员作风分进行加减分管理。";
+  } else if (student?.conductRole === "admin") {
+    qs("conductReadonly").querySelector("span").textContent = "部门行政人员不计入学员作风分，不能进行加减分。";
+  } else if (!student) {
+    qs("conductReadonly").querySelector("span").textContent = "请先从作风分台账选择一名学员。";
   }
 }
 
 function saveConductAdjustment(event) {
   event.preventDefault();
   if (!canManageConduct()) return;
-  const studentId = qs("conductStudentSelect").value;
+  const studentId = selectedConductDetailId;
+  const target = students.find(student => student.userId === studentId);
+  if (!target || target.conductRole === "admin") return;
   const value = Math.max(1, Math.min(30, Number(qs("conductDeltaValue").value) || 1));
   const type = qs("conductDeltaType").value === "+" ? "+" : "-";
   const reason = qs("conductReason").value.trim() || "手工调整";
@@ -2347,11 +2357,12 @@ function saveConductAdjustment(event) {
       conductRecords: [record, ...(student.conductRecords || [])]
     };
   });
-  selectedConductStudentId = studentId;
   selectedConductDetailId = studentId;
   qs("conductReason").value = "";
   qs("conductDeltaValue").value = "1";
   renderConductScores();
+  renderConductPersonDetail();
+  renderConductEditor();
 }
 
 function renderCards() {
@@ -2552,7 +2563,7 @@ document.body.addEventListener("click", (event) => {
   const person = event.target.closest("[data-conduct-person]");
   if (person) {
     selectedConductDetailId = person.dataset.conductPerson || "";
-    renderConductPersonDetail();
+    switchPage("studentProfile");
     return;
   }
   const go = event.target.closest("[data-go]");
@@ -2598,9 +2609,6 @@ qs("studentDemo").addEventListener("click", loadDemoStudents);
 qs("conductDemo").addEventListener("click", loadDemoStudents);
 qs("conductSearch").addEventListener("input", renderConductScores);
 qs("conductStageFilter").addEventListener("change", renderConductScores);
-qs("conductStudentSelect").addEventListener("change", () => {
-  selectedConductStudentId = qs("conductStudentSelect").value;
-});
 qs("conductForm").addEventListener("submit", saveConductAdjustment);
 qs("role").addEventListener("change", () => {
   if (!qs("loginPage").classList.contains("hidden")) return;
@@ -2625,7 +2633,6 @@ qs("logout").addEventListener("click", () => {
   students = [];
   studentsLoaded = false;
   studentDataMode = "none";
-  selectedConductStudentId = "";
   selectedConductDetailId = "";
   closeQaPanel();
 });

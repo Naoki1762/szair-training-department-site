@@ -693,6 +693,20 @@ a { color: inherit; }
   height: 100%;
   object-fit: cover;
 }
+.person-link {
+  border: 0;
+  padding: 0;
+  color: var(--blue);
+  background: transparent;
+  font: inherit;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+}
+.person-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .student-meta {
   display: flex;
   flex-wrap: wrap;
@@ -757,6 +771,71 @@ a { color: inherit; }
 }
 .score-actions .btn {
   min-width: 92px;
+}
+.score-side {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+.person-detail {
+  display: grid;
+  gap: 12px;
+}
+.person-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.person-detail-head .avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  font-size: 18px;
+}
+.person-detail-head h4 {
+  margin: 0;
+  font-size: 18px;
+}
+.person-detail-head span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.person-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.person-detail-item {
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+.person-detail-item span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.person-detail-item strong {
+  font-size: 15px;
+}
+.record-list {
+  display: grid;
+  gap: 8px;
+}
+.record-row {
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  color: var(--muted);
+  background: white;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.record-row strong {
+  color: var(--text);
 }
 .score-note {
   margin: 10px 0 0;
@@ -1225,6 +1304,7 @@ a { color: inherit; }
   .score-controls select,
   .score-controls input,
   .score-controls .btn { width: 100%; }
+  .person-detail-grid { grid-template-columns: 1fr; }
   .qa-launcher {
     right: 14px;
     bottom: 14px;
@@ -1426,10 +1506,10 @@ a { color: inherit; }
                 <div class="score-controls">
                   <select id="conductStageFilter" aria-label="阶段筛选">
                     <option value="all">全部阶段</option>
-                    <option value="S1">S1 未下航校</option>
-                    <option value="S2">S2 在航校</option>
-                    <option value="S3">S3 在队训练</option>
-                    <option value="S4">S4 等待本场</option>
+                    <option value="S1">S1</option>
+                    <option value="S2">S2</option>
+                    <option value="S3">S3</option>
+                    <option value="S4">S4</option>
                     <option value="admin">部门行政人员</option>
                   </select>
                   <input id="conductSearch" type="search" placeholder="搜索姓名、工号或阶段" aria-label="搜索作风分数">
@@ -1456,20 +1536,34 @@ a { color: inherit; }
               </div>
             </div>
 
-            <div class="card">
-              <div class="card-head"><h3>分数调整</h3><span class="pill" id="conductEditStatus">权限检测</span></div>
-              <div class="card-body">
-                <div class="score-readonly hidden" id="conductReadonly">
-                  <strong>当前身份仅可查看</strong>
-                  <span>切换为飞训中心主任或培训部管理人员后，可对学员作风分进行加减分管理。</span>
+            <div class="score-side">
+              <div class="card">
+                <div class="card-head"><h3>人员详情</h3><span class="pill" id="conductDetailStatus">未选择</span></div>
+                <div class="card-body">
+                  <div class="person-detail" id="conductPersonDetail">
+                    <div class="score-readonly">
+                      <strong>选择一名人员</strong>
+                      <span>点击台账中的人员姓名查看基础信息、阶段、角色、分数和最近作风记录。</span>
+                    </div>
+                  </div>
                 </div>
-                <form class="score-form" id="conductForm">
-                  <label><span>学员</span><select id="conductStudentSelect"></select></label>
-                  <label><span>调整类型</span><select id="conductDeltaType"><option value="-">扣分</option><option value="+">加分</option></select></label>
-                  <label><span>分值</span><input id="conductDeltaValue" type="number" min="1" max="30" value="1"></label>
-                  <label><span>原因</span><textarea id="conductReason" placeholder="例如：训练纪律、请假规范、课堂表现等"></textarea></label>
-                  <button class="btn primary" type="submit">保存调整</button>
-                </form>
+              </div>
+
+              <div class="card">
+                <div class="card-head"><h3>分数调整</h3><span class="pill" id="conductEditStatus">权限检测</span></div>
+                <div class="card-body">
+                  <div class="score-readonly hidden" id="conductReadonly">
+                    <strong>当前身份仅可查看</strong>
+                    <span>切换为飞训中心主任或培训部管理人员后，可对学员作风分进行加减分管理。</span>
+                  </div>
+                  <form class="score-form" id="conductForm">
+                    <label><span>学员</span><select id="conductStudentSelect"></select></label>
+                    <label><span>调整类型</span><select id="conductDeltaType"><option value="-">扣分</option><option value="+">加分</option></select></label>
+                    <label><span>分值</span><input id="conductDeltaValue" type="number" min="1" max="30" value="1"></label>
+                    <label><span>原因</span><textarea id="conductReason" placeholder="例如：训练纪律、请假规范、课堂表现等"></textarea></label>
+                    <button class="btn primary" type="submit">保存调整</button>
+                  </form>
+                </div>
               </div>
             </div>
           </div>
@@ -1810,10 +1904,10 @@ const phaseOne = [
 ];
 
 const conductStages = {
-  S1: "S1 未下航校",
-  S2: "S2 在航校",
-  S3: "S3 在队训练",
-  S4: "S4 等待本场"
+  S1: "S1",
+  S2: "S2",
+  S3: "S3",
+  S4: "S4"
 };
 
 const conductAdminIndexes = new Set([6, 28, 73, 119, 166, 214, 271]);
@@ -1827,6 +1921,7 @@ let students = [];
 let studentsLoaded = false;
 let studentDataMode = "none";
 let selectedConductStudentId = "";
+let selectedConductDetailId = "";
 let currentUser = null;
 
 function qs(id) {
@@ -2012,6 +2107,7 @@ function loadDemoStudents() {
   students = createDemoStudents();
   studentsLoaded = true;
   studentDataMode = "demo";
+  selectedConductDetailId = "";
   qs("studentDepartment").textContent = "飞行学员管理室（测试）";
   qs("studentCount").textContent = String(students.length);
   qs("studentSyncedAt").textContent = "测试数据";
@@ -2048,6 +2144,7 @@ async function loadStudents(force = false) {
     students = Array.isArray(data.students) ? data.students : [];
     studentsLoaded = true;
     studentDataMode = "dingtalk";
+    selectedConductDetailId = "";
     qs("studentDepartment").textContent = data.departmentName || "飞行学员管理室";
     qs("studentCount").textContent = String(students.length);
     qs("studentSyncedAt").textContent = data.syncedAt
@@ -2121,6 +2218,7 @@ function renderConductScores() {
     qs("conductAverage").textContent = "--";
     qs("conductLedgerStatus").textContent = "等待数据";
     qs("conductEmptyState").classList.remove("hidden");
+    renderConductPersonDetail();
     renderConductEditor();
     return;
   }
@@ -2152,7 +2250,7 @@ function renderConductScores() {
     const score = isAdmin ? "不计分" : `<strong>${Number(student.conductScore || 0)}</strong>`;
     const roleText = isAdmin ? "部门行政人员" : conductStages[student.conductStage] || "未分配阶段";
     return `<tr>
-      <td><div class="student-person"><div class="avatar">${escapeHtml(student.name.slice(0, 1) || "学")}</div><strong>${escapeHtml(student.name)}</strong></div></td>
+      <td><div class="student-person"><div class="avatar">${escapeHtml(student.name.slice(0, 1) || "学")}</div><button class="person-link" type="button" data-conduct-person="${escapeHtml(student.userId)}">${escapeHtml(student.name)}</button></div></td>
       <td>${escapeHtml(student.jobNumber || "--")}</td>
       <td>${escapeHtml(roleText)}</td>
       <td>${score}</td>
@@ -2161,7 +2259,53 @@ function renderConductScores() {
     </tr>`;
   }).join("");
   qs("conductEmptyState").classList.toggle("hidden", rows.length > 0);
+  if (selectedConductDetailId && !students.some(student => student.userId === selectedConductDetailId)) {
+    selectedConductDetailId = "";
+  }
+  renderConductPersonDetail();
   renderConductEditor();
+}
+
+function renderConductPersonDetail() {
+  const student = students.find(item => item.userId === selectedConductDetailId);
+  if (!student) {
+    qs("conductDetailStatus").textContent = "未选择";
+    qs("conductDetailStatus").className = "pill";
+    qs("conductPersonDetail").innerHTML = `
+      <div class="score-readonly">
+        <strong>选择一名人员</strong>
+        <span>点击台账中的人员姓名查看基础信息、阶段、角色、分数和最近作风记录。</span>
+      </div>
+    `;
+    return;
+  }
+
+  const isAdmin = student.conductRole === "admin";
+  const roleText = isAdmin ? "部门行政人员" : "学员";
+  const stageText = isAdmin ? "行政" : (conductStages[student.conductStage] || "未分配");
+  const scoreText = isAdmin ? "不计分" : `${Number(student.conductScore || 0)} 分`;
+  const records = (student.conductRecords || []).slice(0, 5);
+  qs("conductDetailStatus").textContent = isAdmin ? "管理" : stageText;
+  qs("conductDetailStatus").className = `pill${isAdmin ? " red" : " green"}`;
+  qs("conductPersonDetail").innerHTML = `
+    <div class="person-detail-head">
+      <div class="avatar">${escapeHtml(student.name.slice(0, 1) || "学")}</div>
+      <div><h4>${escapeHtml(student.name)}</h4><span>${escapeHtml(student.jobNumber || "--")}</span></div>
+    </div>
+    <div class="person-detail-grid">
+      <div class="person-detail-item"><span>角色</span><strong>${escapeHtml(roleText)}</strong></div>
+      <div class="person-detail-item"><span>阶段</span><strong>${escapeHtml(stageText)}</strong></div>
+      <div class="person-detail-item"><span>岗位</span><strong>${escapeHtml(student.title || "--")}</strong></div>
+      <div class="person-detail-item"><span>作风分</span><strong>${escapeHtml(scoreText)}</strong></div>
+      <div class="person-detail-item"><span>钉钉状态</span><strong>${student.active ? "正常" : "停用"}</strong></div>
+      <div class="person-detail-item"><span>人员ID</span><strong>${escapeHtml(student.userId || "--")}</strong></div>
+    </div>
+    <div class="record-list">
+      ${records.length
+        ? records.map(record => `<div class="record-row"><strong>${escapeHtml(record.type)}${escapeHtml(record.value)} 分</strong> ${escapeHtml(record.reason || "未填写原因")}<br>${escapeHtml(record.operator || "--")} · ${escapeHtml(record.time || "--")}</div>`).join("")
+        : `<div class="record-row"><strong>暂无作风记录</strong><br>当前人员还没有加减分记录。</div>`}
+    </div>
+  `;
 }
 
 function renderConductEditor() {
@@ -2204,6 +2348,7 @@ function saveConductAdjustment(event) {
     };
   });
   selectedConductStudentId = studentId;
+  selectedConductDetailId = studentId;
   qs("conductReason").value = "";
   qs("conductDeltaValue").value = "1";
   renderConductScores();
@@ -2404,6 +2549,12 @@ startResourceCarousel();
 setupDingTalkLogin();
 
 document.body.addEventListener("click", (event) => {
+  const person = event.target.closest("[data-conduct-person]");
+  if (person) {
+    selectedConductDetailId = person.dataset.conductPerson || "";
+    renderConductPersonDetail();
+    return;
+  }
   const go = event.target.closest("[data-go]");
   if (go) switchPage(go.dataset.go);
   const carousel = event.target.closest("[data-carousel]");
@@ -2475,6 +2626,7 @@ qs("logout").addEventListener("click", () => {
   studentsLoaded = false;
   studentDataMode = "none";
   selectedConductStudentId = "";
+  selectedConductDetailId = "";
   closeQaPanel();
 });
 </script>

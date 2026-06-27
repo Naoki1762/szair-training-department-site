@@ -59,6 +59,39 @@ python manage.py seed_demo_people --count 300
 
 其中 `import_conduct_rules` 会从 `assets/conduct-rules.js` 导入 97 条《飞行学员安全作风量化管理规定2026.6》规则。
 
+## MySQL 数据库
+
+当前项目已支持 MySQL。多人正式使用时请在 `.env` 中启用：
+
+```text
+DB_ENGINE=mysql
+MYSQL_DATABASE=szair_training
+MYSQL_USER=szair_training
+MYSQL_PASSWORD=请填写MySQL密码
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+```
+
+首次使用 MySQL 前，需要先在 MySQL 中创建数据库和账号，例如：
+
+```sql
+CREATE DATABASE szair_training CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'szair_training'@'%' IDENTIFIED BY '请填写MySQL密码';
+GRANT ALL PRIVILEGES ON szair_training.* TO 'szair_training'@'%';
+FLUSH PRIVILEGES;
+```
+
+然后执行：
+
+```bash
+source .venv/bin/activate
+python manage.py migrate
+python manage.py import_conduct_rules
+python manage.py seed_demo_people --count 300
+```
+
+如果没有配置 `DB_ENGINE=mysql`，项目会继续使用本地 SQLite 作为开发兜底。
+
 ## 当前迁移范围
 
 - `/` 由 Django 应用优先渲染 Vue/Vite 构建后的 `dist/index.html`。

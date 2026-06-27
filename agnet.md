@@ -31,7 +31,8 @@ https://training-qa-api-naoki1762.onrender.com
 ## 当前技术栈
 
 - Django 5.2.15：后台管理、数据库、接口
-- SQLite：本地开发数据库，文件为 `db.sqlite3`，不提交 Git
+- MySQL：正式/多人使用数据库，通过 `DB_ENGINE=mysql` 启用
+- SQLite：仅作为未配置 MySQL 时的本地开发兜底，文件为 `db.sqlite3`，不提交 Git
 - Vue 3.5.39 + Vite 8.1.0：前台构建层
 - 原 Node 后端文件仍保留：`server.js`、`api/`、`lib/`
 
@@ -78,6 +79,19 @@ http://127.0.0.1:8000/admin/
 ```
 
 ## 数据库初始化
+
+正式/多人使用请配置 MySQL：
+
+```text
+DB_ENGINE=mysql
+MYSQL_DATABASE=szair_training
+MYSQL_USER=szair_training
+MYSQL_PASSWORD=请填写MySQL密码
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+```
+
+如果未配置 `DB_ENGINE=mysql`，Django 会使用本地 SQLite 兜底。
 
 ```bash
 source .venv/bin/activate

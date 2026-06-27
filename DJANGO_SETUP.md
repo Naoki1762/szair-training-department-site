@@ -36,7 +36,7 @@ http://127.0.0.1:8000/admin/
 
 ```text
 用户名：admin
-密码：Szair@2026Admin!
+密码：shfx6688
 ```
 
 后台目前可以管理：

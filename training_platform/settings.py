@@ -57,7 +57,7 @@ ROOT_URLCONF = 'training_platform.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR],
+        'DIRS': [BASE_DIR / 'dist', BASE_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -120,6 +120,8 @@ USE_TZ = True
 STATIC_URL = '/assets/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'assets']
+if (BASE_DIR / 'dist' / 'assets').exists():
+    STATICFILES_DIRS.append(BASE_DIR / 'dist' / 'assets')
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

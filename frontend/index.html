@@ -1,0 +1,2717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深圳航空培训部管理平台</title>
+<style>
+:root {
+  --red: #c92b2b;
+  --red-deep: #9f2125;
+  --blue: #1c64d9;
+  --blue-soft: #eaf2ff;
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --text: #161a22;
+  --muted: #7c8593;
+  --line: #e7ebf1;
+  --line-soft: #f0f3f7;
+  --green: #18885d;
+  --shadow: 0 18px 42px rgba(17, 24, 39, .08);
+  --sidebar: 248px;
+  --radius: 12px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+img { display: block; max-width: 100%; }
+a { color: inherit; }
+.hidden { display: none !important; }
+
+.login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    linear-gradient(rgba(7, 18, 32, .42), rgba(7, 18, 32, .42)),
+    url("assets/login-scene-bg.png") center / cover no-repeat;
+}
+.login-shell {
+  width: min(1220px, 100%);
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 28px;
+  align-items: center;
+}
+.login-copy {
+  color: white;
+  padding: 24px 6px;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 760;
+  letter-spacing: .12em;
+}
+.login-copy .eyebrow {
+  border: 1px solid rgba(255,255,255,.24);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.92);
+}
+.login-copy h1 {
+  margin: 18px 0 14px;
+  font-size: clamp(42px, 5vw, 72px);
+  line-height: 1.03;
+  letter-spacing: 0;
+}
+.login-copy p {
+  margin: 0;
+  max-width: 660px;
+  color: rgba(255,255,255,.84);
+  font-size: 17px;
+  line-height: 1.85;
+}
+.login-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 28px;
+}
+.login-stat {
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(9, 21, 37, .32);
+  border: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(10px);
+}
+.login-stat strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 28px;
+}
+.login-stat span {
+  color: rgba(255,255,255,.76);
+  font-size: 13px;
+}
+.login-card {
+  padding: 34px 28px 24px;
+  border-radius: 26px;
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(255,255,255,.76);
+  box-shadow: 0 26px 54px rgba(15, 28, 46, .18);
+  backdrop-filter: blur(14px);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.phoenix {
+  width: 28px;
+  height: 28px;
+  color: var(--red);
+  position: relative;
+  transform: rotate(-18deg);
+}
+.phoenix::before {
+  content: "";
+  position: absolute;
+  inset: 3px 0 3px 0;
+  background: currentColor;
+  clip-path: polygon(0 65%, 43% 0, 100% 18%, 56% 42%, 82% 100%, 37% 62%, 10% 100%);
+}
+.brand h2 {
+  margin: 0;
+  font-size: 25px;
+  letter-spacing: 0;
+}
+.brand-sub {
+  margin: 10px 0 26px;
+  text-align: center;
+  color: #8a93a4;
+  font-size: 12px;
+  letter-spacing: .12em;
+}
+.field {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: center;
+  height: 60px;
+  padding: 0 16px;
+  margin-bottom: 16px;
+  border-radius: 18px;
+  border: 1px solid #d8e1ee;
+  background: #eef4ff;
+}
+.field span {
+  color: #b4bdca;
+  font-size: 20px;
+}
+.field input,
+.field select {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 17px;
+}
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  margin: 4px 0 22px;
+}
+.login-links a {
+  color: #4d99ff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+}
+.submit {
+  width: 100%;
+  height: 56px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d83b35, #f06a63);
+  color: white;
+  font-size: 17px;
+  font-weight: 800;
+  box-shadow: 0 14px 28px rgba(221, 82, 78, .26);
+}
+.dingtalk-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 52px;
+  margin-top: 12px;
+  border: 1px solid #cdddf4;
+  border-radius: 999px;
+  color: #1257b7;
+  background: #f5f9ff;
+  font-size: 16px;
+  font-weight: 900;
+  text-decoration: none;
+}
+.dingtalk-login:hover {
+  border-color: #9fc2f3;
+  background: #eaf3ff;
+}
+.login-error {
+  display: none;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #b91c1c;
+  background: #fff1f2;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.login-error.visible {
+  display: block;
+}
+.login-note {
+  margin-top: 22px;
+  text-align: center;
+  color: #667081;
+  font-weight: 700;
+}
+
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar) 1fr;
+}
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 20px 16px;
+  background: #0f1724;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+.side-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 18px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.side-title {
+  font-weight: 760;
+  line-height: 1.2;
+}
+.side-title small {
+  display: block;
+  margin-top: 4px;
+  color: rgba(255,255,255,.45);
+  font-size: 11px;
+  letter-spacing: .12em;
+}
+.nav {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+  padding: 18px 0;
+}
+.nav button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255,255,255,.7);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 0 12px;
+}
+.nav button:hover,
+.nav button.active {
+  background: rgba(255,255,255,.08);
+  color: white;
+}
+.nav button.active {
+  box-shadow: inset 3px 0 0 var(--red);
+}
+.nav em {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--red);
+  font-size: 11px;
+  font-style: normal;
+}
+.side-user {
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.side-user-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.mini-avatar,
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-weight: 800;
+  overflow: hidden;
+}
+.mini-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.12);
+  color: white;
+}
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 20px;
+}
+.logout {
+  width: 100%;
+  height: 38px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.82);
+}
+.main { min-width: 0; }
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 66px;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.9);
+  backdrop-filter: blur(12px);
+}
+.topbar h1 { margin: 0; font-size: 19px; }
+.topbar time { color: var(--muted); font-size: 13px; }
+.content { padding: 24px 28px 34px; }
+.page { display: none; }
+.page.active { display: block; animation: fade .18s ease-out; }
+@keyframes fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.hero {
+  position: relative;
+  min-height: 368px;
+  padding: 34px;
+  border-radius: 18px;
+  overflow: hidden;
+  color: white;
+  background:
+    linear-gradient(rgba(7, 18, 32, .54), rgba(7, 18, 32, .54)),
+    url("assets/login-scene-bg.png") center / cover no-repeat;
+  box-shadow: var(--shadow);
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(10, 23, 40, .66) 0%, rgba(10, 23, 40, .24) 58%, rgba(10, 23, 40, .10) 100%);
+}
+.hero > * {
+  position: relative;
+  z-index: 1;
+}
+.hero .eyebrow {
+  color: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.08);
+}
+.hero h2 {
+  margin: 18px 0 14px;
+  font-size: clamp(34px, 4vw, 58px);
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+.hero p {
+  margin: 0;
+  max-width: 740px;
+  color: rgba(255,255,255,.84);
+  line-height: 1.85;
+  font-size: 17px;
+}
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 26px;
+}
+.hero-stat {
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(9, 21, 37, .42);
+  border: 1px solid rgba(255,255,255,.10);
+}
+.hero-stat strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 28px;
+}
+.hero-stat span {
+  color: rgba(255,255,255,.74);
+  font-size: 13px;
+}
+
+.section-stack {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+.grid-2,
+.grid-3,
+.grid-4,
+.metric-grid,
+.resource-grid,
+.portrait-grid,
+.dashboard-links {
+  display: grid;
+  gap: 18px;
+}
+.grid-2 { grid-template-columns: 1fr 1fr; }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.metric-grid { grid-template-columns: repeat(6, 1fr); }
+.resource-grid { grid-template-columns: repeat(3, 1fr); }
+.portrait-grid { grid-template-columns: repeat(3, 1fr); }
+.dashboard-links { grid-template-columns: repeat(3, 1fr); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 1px 0 rgba(17, 24, 39, .02);
+}
+.card-head {
+  min-height: 56px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line-soft);
+}
+.card-head h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.card-body { padding: 18px; }
+.btn {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: white;
+  color: var(--text);
+  padding: 0 14px;
+  font-weight: 700;
+}
+.btn.primary {
+  background: var(--red);
+  border-color: var(--red);
+  color: white;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 800;
+}
+.pill.red { background: #fff1f1; color: var(--red); }
+.pill.green { background: #ebf8f0; color: var(--green); }
+.pill.orange { background: #fff7ed; color: #c2410c; }
+.pill.amber { background: #fffbeb; color: #a16207; }
+
+.metric {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: white;
+}
+.metric strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 24px;
+}
+.metric span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.intro-copy {
+  color: var(--muted);
+  line-height: 1.9;
+  font-size: 14px;
+}
+.list-stack {
+  display: grid;
+  gap: 12px;
+}
+.list-row {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff 0%, #fbfcff 100%);
+}
+.list-row b {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+.list-row p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #fff3f2;
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 800;
+}
+.feature-card {
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #fff 0%, #f9fbff 100%);
+}
+.feature-card h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.feature-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.75;
+  font-size: 13px;
+}
+.feature-card ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+.feature-card li { margin: 6px 0; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.table th {
+  text-align: left;
+  padding: 13px 14px;
+  color: var(--muted);
+  background: #f8fafc;
+  border-bottom: 1px solid var(--line);
+}
+.table td {
+  padding: 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+.table tr:last-child td { border-bottom: 0; }
+.mini-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.mini-table td {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.mini-table td:last-child {
+  text-align: right;
+  color: var(--muted);
+}
+.mini-table tr:last-child td { border-bottom: 0; }
+.student-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.student-search {
+  width: min(360px, 100%);
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: 0;
+  color: var(--text);
+  background: white;
+}
+.student-search:focus,
+.student-access input:focus {
+  border-color: rgba(28, 100, 217, .5);
+  box-shadow: 0 0 0 3px rgba(28, 100, 217, .08);
+}
+.student-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.student-access {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) auto;
+  gap: 10px;
+  max-width: 520px;
+}
+.student-access input {
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: 0;
+}
+.student-demo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-soft);
+}
+.student-demo span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.student-state {
+  display: grid;
+  place-items: center;
+  min-height: 230px;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+}
+.student-state strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 18px;
+}
+.student-table-wrap { overflow-x: auto; }
+.student-table-wrap .table { min-width: 680px; }
+.score-table-wrap { overflow-x: auto; }
+.score-table-wrap .table { min-width: 920px; }
+.student-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 150px;
+}
+.student-person .avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+.student-person .avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.person-link {
+  border: 0;
+  padding: 0;
+  color: var(--blue);
+  background: transparent;
+  font: inherit;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+}
+.person-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.student-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.score-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 18px;
+}
+.score-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.score-controls select,
+.score-controls input,
+.score-form select,
+.score-form input,
+.score-form textarea {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: 0;
+  background: white;
+  color: var(--text);
+}
+.score-controls input { width: min(280px, 100%); }
+.score-form {
+  display: grid;
+  gap: 10px;
+}
+.score-form textarea {
+  height: 84px;
+  padding-top: 10px;
+  resize: vertical;
+}
+.score-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+.score-form label > span { color: var(--muted); }
+.score-summary {
+  display: grid;
+  gap: 10px;
+}
+.score-delta {
+  font-weight: 900;
+}
+.score-delta.good { color: #047857; }
+.score-delta.bad { color: #b91c1c; }
+.score-actions {
+  display: flex;
+  gap: 8px;
+}
+.score-actions .btn {
+  min-width: 92px;
+}
+.score-side {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+.person-detail {
+  display: grid;
+  gap: 12px;
+}
+.person-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.person-detail-head .avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  font-size: 18px;
+}
+.person-detail-head h4 {
+  margin: 0;
+  font-size: 18px;
+}
+.person-detail-head span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.person-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.person-detail-item {
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+.person-detail-item span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.person-detail-item strong {
+  font-size: 15px;
+}
+.score-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.score-value .pill {
+  min-height: 24px;
+  font-size: 11px;
+  font-style: normal;
+}
+.record-list {
+  display: grid;
+  gap: 8px;
+}
+.record-row {
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  color: var(--muted);
+  background: white;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.record-row strong {
+  color: var(--text);
+}
+.score-note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.score-readonly {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.org-grid {
+  display: grid;
+  grid-template-columns: 1.06fr .94fr;
+  gap: 18px;
+}
+.org-tree,
+.resource-stacks {
+  display: grid;
+  gap: 14px;
+}
+.org-card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+}
+.org-card h4 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.org-children {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.org-children span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+}
+.image-carousel {
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: white;
+}
+.carousel-stage {
+  position: relative;
+  background: #f8fafc;
+}
+.carousel-stage img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+}
+.carousel-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--text);
+}
+.carousel-caption h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+.carousel-caption p {
+  margin: 0;
+  max-width: 680px;
+  color: var(--muted);
+  line-height: 1.65;
+  font-size: 14px;
+}
+.carousel-controls {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.carousel-btn {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 800;
+}
+.carousel-thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 12px;
+  background: white;
+}
+.carousel-thumb {
+  min-height: 74px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: var(--text);
+  padding: 10px;
+  text-align: left;
+  font-weight: 800;
+}
+.carousel-thumb span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.carousel-thumb.active {
+  border-color: var(--red);
+  box-shadow: inset 0 0 0 2px rgba(201, 43, 43, .12);
+}
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.photo-card {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: white;
+}
+.photo-card img {
+  width: 100%;
+  height: 300px;
+  object-fit: contain;
+  background: #f8fafc;
+}
+.photo-card div {
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.roadmap {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.stage {
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: white;
+}
+.stage strong {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  margin-bottom: 12px;
+  background: #fff2f1;
+  color: var(--red);
+}
+.stage h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.stage p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.8;
+  font-size: 14px;
+}
+.stage ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+.stage li { margin: 6px 0; }
+
+.qa-launcher {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  background: linear-gradient(135deg, var(--red), #eb6b48);
+  box-shadow: 0 18px 34px rgba(201, 43, 43, .28);
+  font-weight: 850;
+}
+.qa-launcher span {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,.18);
+}
+.qa-panel {
+  position: fixed;
+  right: 22px;
+  bottom: 86px;
+  z-index: 31;
+  width: min(420px, calc(100vw - 28px));
+  height: min(620px, calc(100vh - 118px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 36, .12);
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 26px 68px rgba(15, 23, 36, .22);
+}
+.qa-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  color: white;
+  background: #0f1724;
+}
+.qa-head strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+.qa-head small {
+  color: rgba(255,255,255,.68);
+  font-size: 12px;
+}
+.qa-kb-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: #60a5fa;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.qa-kb-link:hover {
+  color: #93c5fd;
+}
+.qa-close {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  color: white;
+  background: rgba(255,255,255,.08);
+  font-size: 20px;
+  line-height: 1;
+}
+.qa-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f7f9fc;
+}
+.qa-message {
+  max-width: 88%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  line-height: 1.65;
+  font-size: 14px;
+}
+.qa-message.bot {
+  align-self: flex-start;
+  border: 1px solid var(--line);
+  border-top-left-radius: 5px;
+  color: var(--text);
+  background: white;
+}
+.qa-message.user {
+  align-self: flex-end;
+  border-top-right-radius: 5px;
+  color: white;
+  background: var(--blue);
+}
+.qa-sources {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(15, 23, 36, .08);
+  color: var(--muted);
+  font-size: 12px;
+}
+.qa-sources a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.qa-sources a:hover {
+  color: #1d4ed8;
+}
+.qa-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid var(--line);
+  background: white;
+}
+.qa-form textarea {
+  width: 100%;
+  min-height: 48px;
+  max-height: 110px;
+  resize: none;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  outline: 0;
+  color: var(--text);
+  background: #fbfdff;
+  font: inherit;
+}
+.qa-form textarea:focus {
+  border-color: rgba(28, 100, 217, .5);
+  box-shadow: 0 0 0 3px rgba(28, 100, 217, .08);
+}
+.qa-send {
+  width: 54px;
+  border: 0;
+  border-radius: 12px;
+  color: white;
+  background: var(--red);
+  font-weight: 900;
+}
+.qa-send:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.qa-hint {
+  padding: 0 14px 14px;
+  color: var(--muted);
+  background: white;
+  font-size: 12px;
+}
+
+@media (max-width: 1080px) {
+  .login-shell,
+  .grid-2,
+  .org-grid {
+    grid-template-columns: 1fr;
+  }
+  .login-stats,
+  .hero-stats,
+  .carousel-thumbs,
+  .grid-3,
+  .grid-4,
+  .metric-grid,
+  .resource-grid,
+  .portrait-grid,
+  .dashboard-links,
+  .roadmap,
+  .photo-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 820px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar {
+    position: relative;
+    height: auto;
+    min-width: 0;
+  }
+  .nav {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+  .main { min-width: 0; }
+  .nav button {
+    min-width: max-content;
+    white-space: nowrap;
+  }
+  .topbar {
+    height: auto;
+    padding: 12px 16px;
+    align-items: flex-start;
+    gap: 6px;
+    flex-direction: column;
+  }
+  .content { padding: 14px; }
+  .hero {
+    padding: 20px;
+    min-height: 320px;
+  }
+  .hero h2 { font-size: 34px; }
+  .hero p,
+  .login-copy p { font-size: 15px; }
+  .login {
+    padding: 20px 14px;
+  }
+  .login-copy {
+    padding: 0;
+  }
+  .login-card {
+    padding: 28px 18px 22px;
+  }
+  .login-stats,
+  .hero-stats,
+  .grid-3,
+  .grid-4,
+  .metric-grid,
+  .resource-grid,
+  .portrait-grid,
+  .dashboard-links,
+  .roadmap,
+  .photo-grid {
+    grid-template-columns: 1fr;
+  }
+  .list-row {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+  .student-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .student-search { width: 100%; }
+  .student-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .student-actions .btn { width: 100%; }
+  .student-access { grid-template-columns: 1fr; }
+  .student-demo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .student-demo .btn { width: 100%; }
+  .score-layout { grid-template-columns: 1fr; }
+  .score-controls {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+  .score-controls select,
+  .score-controls input,
+  .score-controls .btn { width: 100%; }
+  .person-detail-grid { grid-template-columns: 1fr; }
+  .qa-launcher {
+    right: 14px;
+    bottom: 14px;
+  }
+  .qa-panel {
+    right: 14px;
+    bottom: 74px;
+  }
+}
+</style>
+</head>
+<body>
+<section class="login" id="loginPage">
+  <div class="login-shell">
+    <div class="login-copy">
+      <span class="eyebrow">TRAINING MANAGEMENT PORTAL</span>
+      <h1>深圳航空培训部<br>管理平台</h1>
+      <p>以培训部为起点，围绕课件标准、教员画像、数字资产和智能化建设，逐步搭建可复制、可扩展的培训管理底座。</p>
+      <div class="login-stats" id="loginStats"></div>
+    </div>
+    <form class="login-card" id="loginForm">
+      <div class="brand"><span class="phoenix"></span><h2>深圳航空培训部</h2></div>
+      <div class="brand-sub">TRAINING MANAGEMENT PORTAL</div>
+      <label class="field"><span>●</span><input id="username" value="a01149" aria-label="账号"></label>
+      <label class="field"><span>□</span><input id="password" type="password" value="password" aria-label="密码"></label>
+      <label class="field"><span>◇</span><select id="role" aria-label="身份"></select></label>
+      <div class="login-links"><a href="#">重置密码</a><a href="#">问题反馈</a></div>
+      <button class="submit" type="submit">登录</button>
+      <a class="dingtalk-login" id="dingtalkLogin" href="#">钉钉一键登录</a>
+      <div class="login-error" id="loginError"></div>
+      <div class="login-note">飞训中心智慧培训入口</div>
+    </form>
+  </div>
+</section>
+
+<section class="app hidden" id="app">
+  <aside class="sidebar">
+    <div class="side-head">
+      <span class="phoenix"></span>
+      <div class="side-title">深航培训部<small>TRAINING PORTAL</small></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-user">
+      <div class="side-user-row"><div class="mini-avatar" id="sideAvatar">段</div><div><strong id="sideName">段超</strong><br><small id="sideRole">飞训中心主任</small></div></div>
+      <button class="logout" id="logout">退出登录</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <h1 id="pageTitle">工作台</h1>
+      <time id="clock"></time>
+    </header>
+
+    <div class="content">
+      <section class="page active" id="dashboard">
+        <div class="hero">
+          <span class="eyebrow">TRAINING DEPARTMENT PLATFORM</span>
+          <h2>深圳航空培训部<br>数字化工作台</h2>
+          <div class="hero-stats" id="heroStats"></div>
+        </div>
+
+        <div class="section-stack">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>培训部简介</h3><span class="pill red">现场资料已纳入</span></div>
+              <div class="card-body">
+                <div class="intro-copy">深圳航空培训部主要位于深航基地东区 B3 乘务训练大楼和 B5 飞行训练大楼。截至 2022 年 11 月，培训部共有除飞行学员以外的在编教职员工 160 人，其中 17% 为管理干部、15% 为硕士研究生、72% 为中共党员。部门由“三个中心三个科室”组成，承担飞行学员新雇员培训、机长转升类培训、教员转升理论培训和模拟机教学任务，同时覆盖乘务学员初始培训、乘务员年度复训、服务类和应急类培训，以及 PLPEC 考点与驾驶员执照理论考点管理。</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>重点项目</h3><span class="pill">本轮建设主线</span></div>
+              <div class="card-body"><div class="list-stack" id="leaderFocus"></div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>指标概览</h3><button class="btn" data-go="reports">查看数据看板</button></div>
+            <div class="card-body"><div class="metric-grid" id="metricGrid"></div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>重点模块入口</h3><button class="btn" data-go="roadmap">查看三步走</button></div>
+            <div class="card-body"><div class="dashboard-links" id="dashboardLinks"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="courseware">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head"><h3>AI 课件助手</h3><span class="pill red">统一标准 + 场景化输出</span></div>
+            <div class="card-body"><div class="grid-4" id="coursewareModes"></div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>标准化建设清单</h3><span class="pill">先统一，再生成</span></div>
+              <div class="card-body"><div class="list-stack" id="coursewareChecklist"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>课件场景输出</h3><button class="btn" data-go="assetsCenter">联动数字资产</button></div>
+              <div class="card-body"><div class="grid-3" id="coursewareScenes"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="faculty">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head"><h3>教员全生命周期画像</h3><span class="pill">资质 / 授权 / 训练 / 风险</span></div>
+            <div class="card-body"><div class="list-stack" id="facultyFlow"></div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>画像维度</h3></div>
+              <div class="card-body"><div class="portrait-grid" id="facultyPortrait"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>近期风险提醒</h3><button class="btn" data-go="roadmap">查看建设路线</button></div>
+              <div class="card-body">
+                <table class="table">
+                  <thead><tr><th>事项</th><th>说明</th><th>状态</th></tr></thead>
+                  <tbody id="facultyRisks"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="students">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head">
+              <h3>在队学员</h3>
+              <span class="pill green" id="studentSyncStatus">钉钉通讯录</span>
+            </div>
+            <div class="card-body">
+              <div class="student-toolbar">
+                <div class="student-meta">
+                  <span>来源部门：<strong id="studentDepartment">飞行学员管理室</strong></span>
+                  <span>共 <strong id="studentCount">--</strong> 人</span>
+                  <span>同步时间：<strong id="studentSyncedAt">尚未同步</strong></span>
+                </div>
+                <div class="student-actions">
+                  <input class="student-search" id="studentSearch" type="search" placeholder="搜索姓名、工号或岗位" aria-label="搜索在队学员">
+                  <button class="btn primary" id="studentRefresh" type="button">刷新名单</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="student-state" id="studentAccessPanel">
+              <div>
+                <strong>验证名单访问权限</strong>
+                <p>输入由管理员设置的学员名单访问口令。</p>
+                <form class="student-access" id="studentAccessForm">
+                  <input id="studentAccessToken" type="password" autocomplete="current-password" placeholder="访问口令" aria-label="学员名单访问口令">
+                  <button class="btn primary" type="submit">进入名单</button>
+                </form>
+                <div class="student-demo">
+                  <span>钉钉接入前可先检查页面功能</span>
+                  <button class="btn" id="studentDemo" type="button">加载 300 人测试名单</button>
+                </div>
+              </div>
+            </div>
+            <div class="hidden" id="studentListPanel">
+              <div class="student-table-wrap">
+                <table class="table">
+                  <thead><tr><th>学员</th><th>工号</th><th>岗位</th><th>钉钉状态</th></tr></thead>
+                  <tbody id="studentTable"></tbody>
+                </table>
+              </div>
+              <div class="student-state hidden" id="studentEmptyState">
+                <div><strong>没有匹配的学员</strong><span>请调整搜索关键词。</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="conduct">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head">
+              <h3>学员作风分数</h3>
+              <span class="pill green" id="conductPermission">只读</span>
+            </div>
+            <div class="card-body">
+              <div class="student-toolbar">
+                <div class="student-meta">
+                  <span>基础分：<strong>100</strong></span>
+                  <span>学员：<strong id="conductStudentCount">--</strong> 人</span>
+                  <span>行政人员：<strong id="conductAdminCount">--</strong> 人</span>
+                  <span>平均分：<strong id="conductAverage">--</strong></span>
+                </div>
+                <div class="score-controls">
+                  <select id="conductStageFilter" aria-label="阶段筛选">
+                    <option value="all">全部阶段</option>
+                    <option value="S1">S1</option>
+                    <option value="S2">S2</option>
+                    <option value="S3">S3</option>
+                    <option value="S4">S4</option>
+                    <option value="admin">部门行政人员</option>
+                  </select>
+                  <input id="conductSearch" type="search" placeholder="搜索姓名、工号或阶段" aria-label="搜索作风分数">
+                </div>
+              </div>
+              <p class="score-note">在队学员列表是基础数据。S1-S4 学员默认作风分 100 分；部门行政人员不计入学员作风分，只承担管理角色。</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>作风分台账</h3><span class="pill" id="conductLedgerStatus">等待数据</span></div>
+            <div class="card-body">
+              <div class="score-table-wrap">
+                <table class="table">
+                  <thead><tr><th>人员</th><th>工号</th><th>阶段/角色</th><th>作风分</th><th>最近记录</th><th>权限</th></tr></thead>
+                  <tbody id="conductTable"></tbody>
+                </table>
+              </div>
+              <div class="student-state hidden" id="conductEmptyState">
+                <div><strong>暂无可显示数据</strong><span>请先加载测试名单，或调整搜索与阶段筛选。</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="studentProfile">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head">
+              <h3 id="profileTitle">学员信息主页</h3>
+              <button class="btn" type="button" data-go="conduct">返回台账</button>
+            </div>
+            <div class="card-body">
+              <div class="person-detail" id="conductPersonDetail">
+                <div class="score-readonly">
+                  <strong>暂无人员信息</strong>
+                  <span>请从作风分台账点击人员姓名进入学员信息主页。</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>作风分调整</h3><span class="pill" id="conductEditStatus">权限检测</span></div>
+            <div class="card-body">
+              <div class="score-readonly hidden" id="conductReadonly">
+                <strong>当前身份仅可查看</strong>
+                <span>管理员可在此主页对当前学员作风分进行加减分管理。</span>
+              </div>
+              <form class="score-form" id="conductForm">
+                <label><span>制度项目</span><select id="conductRuleSelect"></select></label>
+                <label><span>分值</span><select id="conductRuleValue"></select></label>
+                <label><span>补充说明</span><textarea id="conductReason" placeholder="可补充事实经过、信息来源或审批说明"></textarea></label>
+                <button class="btn primary" type="submit">保存调整</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="assetsCenter">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head"><h3>数字资产中心</h3><span class="pill red">模板 / 流程 / 知识 / 版本</span></div>
+            <div class="card-body"><div class="grid-4" id="assetTypes"></div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>核心资产台账</h3><span class="pill">持续沉淀</span></div>
+              <div class="card-body">
+                <table class="table">
+                  <thead><tr><th>资产类型</th><th>内容</th><th>状态</th></tr></thead>
+                  <tbody id="assetLedger"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>可复制工作流</h3><button class="btn" data-go="courseware">回到课件助手</button></div>
+              <div class="card-body"><div class="list-stack" id="assetFlows"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="organization">
+        <div class="org-grid">
+          <div class="card">
+            <div class="card-head"><h3>组织架构</h3><span class="pill red">来自现场照片</span></div>
+            <div class="card-body"><div class="org-tree" id="orgTree"></div></div>
+          </div>
+          <div class="section-stack">
+            <div class="card">
+              <div class="card-head"><h3>组织说明</h3><span class="pill">三个中心三个科室</span></div>
+              <div class="card-body">
+                <div class="intro-copy">培训部体系以上级总经理室为统领，横向覆盖综合业务、综合培训、计划质控三项基础支撑，纵向形成飞行训练中心、乘务训练中心、模拟机维护中心三大业务中心。其中飞行训练中心下设理论、技术、英语教研及飞行学员管理等核心单元，构成当前培训部数字化建设的主要业务载体。</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>当前数字化优先覆盖范围</h3><span class="pill green">先部门，后扩展</span></div>
+              <div class="card-body"><div class="list-stack" id="orgPriority"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="resources">
+        <div class="section-stack">
+          <div class="image-carousel" id="resourceCarousel"></div>
+          <div class="resource-grid" id="resourceSummary"></div>
+          <div class="card">
+            <div class="card-head"><h3>训练资源明细</h3><span class="pill red">设备与场景保障能力</span></div>
+            <div class="card-body"><div class="resource-stacks" id="resourceStacks"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="reports">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head"><h3>数据看板</h3><span class="pill green">管理与验收并重</span></div>
+            <div class="card-body"><div class="metric-grid" id="reportMetrics"></div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>重点观察指标</h3><span class="pill">围绕标准、画像、资产、智能</span></div>
+              <div class="card-body"><div class="grid-3" id="reportFocus"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>近期输出建议</h3><button class="btn" data-go="roadmap">看三步走</button></div>
+              <div class="card-body"><div class="list-stack" id="reportActions"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="roadmap">
+        <div class="section-stack">
+          <div class="card">
+            <div class="card-head"><h3>建设路线</h3><span class="pill red">纸质化 → 数字化 → 智能化</span></div>
+            <div class="card-body"><div class="roadmap" id="roadmapStages"></div></div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head"><h3>一期实施重点</h3><span class="pill">先打底</span></div>
+              <div class="card-body"><div class="list-stack" id="phaseOne"></div></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>平台定位</h3><span class="pill green">从部门出发，向更大范围拓展</span></div>
+              <div class="card-body">
+                <div class="intro-copy">网站不再只是部门展示页，而是培训管理平台的一期界面。当前先服务培训部，把课件标准、教员画像、工作流和底层数据沉淀跑通；后续再向飞训中心更大范围扩展，形成统一的培训数字化能力底座。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</section>
+
+<button class="qa-launcher hidden" id="qaLauncher" type="button" aria-controls="qaPanel" aria-expanded="false">
+  <span>?</span>知识库助手
+</button>
+
+<aside class="qa-panel hidden" id="qaPanel" aria-label="培训部知识库助手">
+  <div class="qa-head">
+    <div>
+      <strong>培训部知识库助手</strong>
+      <small>课件标准、教员资质、训练资源与流程问答</small>
+      <a class="qa-kb-link" href="https://ima.qq.com/wiki/?shareId=bbe207edc532702d12be453f0a2a28845c93a77a750806b42ec3922e7400ea00" target="_blank" rel="noopener noreferrer">在 ima 知识库中查看</a>
+    </div>
+    <button class="qa-close" id="qaClose" type="button" aria-label="关闭知识库助手">×</button>
+  </div>
+  <div class="qa-messages" id="qaMessages"></div>
+  <form class="qa-form" id="qaForm">
+    <textarea id="qaInput" rows="2" placeholder="请输入你的问题，例如：教员资质到期提醒应该怎么做？"></textarea>
+    <button class="qa-send" id="qaSend" type="submit" aria-label="发送问题">发</button>
+  </form>
+  <div class="qa-hint">回答由后端知识库接口生成，密钥不会暴露在网页中。</div>
+</aside>
+
+<script src="assets/conduct-rules.js?v=20260626"></script>
+<script src="assets/qa-config.js"></script>
+<script>
+const roles = [
+  { id: "duan", name: "段超", role: "飞训中心主任", avatar: "段" },
+  { id: "manager", name: "培训管理岗", role: "培训部管理人员", avatar: "管" },
+  { id: "teacher", name: "教员用户", role: "培训教员", avatar: "教" },
+  { id: "student", name: "学员用户", role: "飞行学员", avatar: "学" }
+];
+
+const navItems = [
+  ["dashboard", "工作台"],
+  ["students", "在队学员"],
+  ["conduct", "作风分数"],
+  ["courseware", "AI课件助手"],
+  ["faculty", "教员资质"],
+  ["assetsCenter", "数字资产中心"],
+  ["organization", "组织架构"],
+  ["resources", "训练资源"],
+  ["reports", "数据看板"],
+  ["roadmap", "建设路线"]
+];
+
+const loginStats = [
+  ["160", "截至 2022 年 11 月在编教职员工"],
+  ["3+3", "三个中心三个科室协同运行"],
+  ["31", "普通教室及专项训练场景"]
+];
+
+const heroStats = [
+  ["160", "在编教职员工"],
+  ["17%", "管理干部占比"],
+  ["15%", "硕士研究生占比"],
+  ["72%", "党员占比"]
+];
+
+const leaderFocus = [
+  ["网站定位", "从部门出发先做成平台底座，后续向更大培训体系扩展。", "平台底座"],
+  ["AI 课件助手", "统一课件标准，按学员授课、审核依据、内部汇报等场景输出不同模块。", "优先模块"],
+  ["教员资质管理", "建立教员全生命周期画像，看到能干什么、干过什么、何时有风险。", "核心模块"],
+  ["数字资产与自动化", "沉淀可复制工作流，按纸质化、数字化、智能化三步逐步推进。", "长期建设"]
+];
+
+const metrics = [
+  ["6", "首批核心模块"],
+  ["3", "优先闭环任务"],
+  ["12", "飞行训练设备"],
+  ["18+", "客舱模拟训练设备"],
+  ["31", "普通教室"],
+  ["1", "多功能训练泳池"]
+];
+
+const dashboardLinks = [
+  ["AI课件助手", "先解决课件风格不统一、格式不统一和场景适配问题。"],
+  ["教员资质画像", "把资质、授权、授课记录和预警做成一人一画像。"],
+  ["数字资产中心", "沉淀模板、流程、知识与版本，形成可复制工作流。"] 
+];
+
+const coursewareModes = [
+  ["模板中心", "统一封面、目录、章节页、字体、配色、页脚和校验规则。", ["品牌统一", "格式统一", "送审更稳"]],
+  ["内容生成", "输入课程主题、大纲或素材，输出结构化课件初稿和讲稿框架。", ["自动生成", "可人工改写", "版本留痕"]],
+  ["场景切换", "同一主题自动输出学员授课、审核依据、内部汇报等不同模块。", ["多版本", "同源内容", "适配场景"]],
+  ["标准检查", "自动发现页数异常、术语不统一、格式不规范和缺失页。", ["自动校验", "减少返工", "支持复核"]]
+];
+
+const coursewareChecklist = [
+  ["统一课件模板", "先固化培训部标准封面、目录、章节分隔、页脚及页码规则。", "P0"],
+  ["统一内容结构", "建立课程目标、教学重点、考核方式、风险提示等固定模块。", "P0"],
+  ["统一审核口径", "把局方关注点、送审注意项和历史意见沉淀到规则库。", "P1"],
+  ["统一版本管理", "每次生成、修改、审核、发布都保留版本与责任人。", "P1"]
+];
+
+const coursewareScenes = [
+  ["学员授课", "面向课堂使用，突出案例、流程、重点提示与课堂节奏。"],
+  ["审核依据", "面向审核场景，集中呈现依据、规范来源、教学目标和合规表达。"],
+  ["内部汇报", "面向管理汇报，突出目标、进度、成果和问题复盘。"]
+];
+
+const facultyFlow = [
+  ["基础身份建档", "建立一人一档案，收口基础信息、组织归属、岗位角色和联系方式。", "一人一身份"],
+  ["资质与授权", "记录机型、课程授权、证照期限、复训要求和可授课边界。", "授权可视"],
+  ["授课与训练记录", "沉淀授课次数、学时、课件更新、质量反馈和培训经历。", "过程留痕"],
+  ["风险预警与续期", "对到期证照、待复训、冲突授权和质量波动自动提醒。", "风险前置"]
+];
+
+const facultyPortrait = [
+  ["基础档案", "姓名、岗位、中心归属、角色权限。"],
+  ["资质状态", "证照、授权课程、有效期、复训周期。"],
+  ["授课画像", "学时、课程覆盖、评分、质量反馈。"],
+  ["内容贡献", "课件开发、更新记录、知识沉淀。"],
+  ["运行风险", "即将到期、待复训、异常预警。"],
+  ["协同关系", "参与项目、所属流程、关联资产。"]
+];
+
+const facultyRisks = [
+  ["B737 机型授权复训", "6 人 30 天内到期", "高"],
+  ["英语课程授权更新", "3 门课程待确认", "中"],
+  ["局方审核课件关联教员", "2 人待补充送审说明", "中"],
+  ["理论教研室教员画像建档", "首批 12 人待完善", "推进中"]
+];
+
+const assetTypes = [
+  ["模板库", "课件模板、汇报模板、审批模板、通知模板"],
+  ["流程库", "课程开发、送审、资质维护、训练组织流程"],
+  ["知识库", "制度术语、审核要点、优秀案例、常见问题"],
+  ["版本库", "课件历史版本、修订记录、责任人、发布时间"]
+];
+
+const assetLedger = [
+  ["课件模板", "飞行培训通用模板 V1.0", "已上线"],
+  ["场景模板", "学员授课 / 审核依据 / 内部汇报", "建设中"],
+  ["工作流", "课件开发与审核流程", "首批落地"],
+  ["知识资产", "局方审核关注点清单", "整理中"],
+  ["历史案例", "优秀课件与复盘样例", "持续补充"]
+];
+
+const assetFlows = [
+  ["课件开发工作流", "素材输入 -> 模板套用 -> AI 初稿 -> 人工修订 -> 送审归档", "可复制"],
+  ["教员资质维护工作流", "资料收集 -> 建档 -> 授权确认 -> 到期提醒 -> 复训更新", "可复制"],
+  ["训练组织工作流", "计划制定 -> 资源排布 -> 实施记录 -> 结果沉淀 -> 看板分析", "可复制"],
+  ["汇报输出工作流", "业务数据 -> 模板调用 -> AI 汇总 -> 管理复核 -> 对外输出", "可复制"]
+];
+
+const orgTree = [
+  ["总经理室", ["培训部"]],
+  ["基础支撑", ["综合业务室", "综合培训室", "计划质控室"]],
+  ["飞行训练中心", ["理论教研室", "技术教研室", "英语教研室", "飞行学员管理室"]],
+  ["乘务训练中心", ["服务教研室", "安全教研室", "乘务学员管理室"]],
+  ["模拟机维护中心", ["飞行模拟机维护室", "乘务模拟机维护室", "工程技术室", "航材管理室"]]
+];
+
+const orgPriority = [
+  ["一期先覆盖培训部", "优先围绕飞行训练中心及三项基础支撑建立数据底座。", "当前范围"],
+  ["二期向更多中心扩展", "把课件标准、画像能力、工作流复制到乘务训练与维护中心。", "后续扩展"],
+  ["统一权限与身份", "先按角色设计页面和权限，避免后续扩展时重做。", "底层原则"]
+];
+
+const resourceSummary = [
+  ["飞行训练设备", "12 类设备能力", "4 台 B737-800 全动模拟机、3 台 A320-200CEO 飞行模拟机等"],
+  ["乘务训练设备", "18 套客舱训练设备", "动态舱、客舱服务模拟器、灭火与出口模拟器、水上训练船"],
+  ["培训教室", "多场景教学空间", "PLPEC&PLTT 考点、FAP、CPR、CBT 与 31 个普通教室"]
+];
+
+const resourceStacks = [
+  ["飞行训练设备", ["4 台 B737-800 飞行模拟机", "1 台 B737-8 飞行模拟机", "1 台 B737-800 APT", "3 台 A320-200CEO 飞行模拟机", "2 台 A320-200NEO 飞行模拟机", "1 台 A320NEO APT"]],
+  ["乘务训练设备", ["1 台 A320 客舱模拟器（动态）", "1 台 B737 客舱模拟器", "3 台客舱服务模拟器", "2 台灭火模拟器", "6 台出口模拟器", "2 台水上训练船", "1 台营救船"]],
+  ["培训教室", ["1 个 PLPEC&PLTT 考点", "1 个应急设备室", "1 个形体训练房", "1 个茶文化教室", "1 个酒文化教室", "1 个厨房教室", "1 个化妆教室", "1 个 FAP 教室", "3 个 CPR 教室", "5 个 CBT 教室", "31 个普通教室"]]
+];
+
+const resourceSlides = [
+  {
+    title: "培训部数字化工作台",
+    text: "以培训管理、课程计划、考核评估和资源中心为核心，展示培训部数字化建设的总体入口。",
+    image: "assets/generated-training-workbench-overview.png",
+    alt: "深圳航空培训部数字化工作台总览"
+  },
+  {
+    title: "培训部简介",
+    text: "围绕人员规模、中心科室、B3 乘务训练大楼和 B5 飞行训练大楼，形成简介型视觉资产。",
+    image: "assets/generated-training-dept-intro.png",
+    alt: "培训部简介视觉图"
+  },
+  {
+    title: "组织架构",
+    text: "展示总经理室、飞行训练中心、乘务训练中心、模拟机维护中心及核心教研室关系。",
+    image: "assets/generated-training-org-chart.png",
+    alt: "培训部组织架构视觉图"
+  },
+  {
+    title: "训练设备",
+    text: "集中呈现飞行模拟机、乘务训练设备、培训教室、PLPEC 考点和动态舱等训练资源。",
+    image: "assets/generated-training-equipment.png",
+    alt: "训练设备视觉图"
+  }
+];
+
+const reportMetrics = [
+  ["85%", "课件标准统一覆盖率目标"],
+  ["100%", "核心教员画像建档率目标"],
+  ["4 类", "首批数字资产沉淀类型"],
+  ["3 步", "纸质化到智能化推进路径"],
+  ["2 个", "领导点名优先模块"],
+  ["1 套", "可复制工作流体系"]
+];
+
+const reportFocus = [
+  ["标准化", "看模板统一率、场景覆盖率、送审返工率。"],
+  ["画像化", "看建档完整率、资质到期风险、授权冲突。"],
+  ["资产化", "看模板库、流程库、知识库、版本库沉淀情况。"],
+  ["自动化", "看人工录入占比、流程线上化率、自动提醒数量。"],
+  ["智能化", "看 AI 初稿采用率、生成效率、复用频次。"],
+  ["扩展性", "看模块复用能力和向更大范围推广条件。"]
+];
+
+const reportActions = [
+  ["先做课件模板库", "把飞行、理论、英语等课程模板先统一。", "马上推进"],
+  ["先做教员画像首批样板", "从飞行训练中心核心教员开始建档。", "样板先行"],
+  ["先沉淀 4 条工作流", "课件、资质、训练组织、汇报输出先闭环。", "沉淀资产"],
+  ["先允许人工录入", "先把数据拿到手，再逐步自动化。", "务实路线"]
+];
+
+const roadmapStages = [
+  ["01", "纸质化转数字化", "先通过人工录入和表单化，把底账建起来。", ["统一字段", "先有人录", "先有台账"]],
+  ["02", "数字化规范运行", "把模板、流程、权限、台账和看板正式跑起来。", ["流程收口", "数据可查", "结果可看"]],
+  ["03", "智能化逐步叠加", "在课件、画像、汇报、提醒等高价值场景引入 AI。", ["AI 初稿", "自动提醒", "知识调用"]]
+];
+
+const phaseOne = [
+  ["AI 课件助手上线原型", "先做模板中心、场景切换、标准检查三项核心能力。", "一期核心"],
+  ["教员画像试点", "先覆盖飞行训练中心首批教员，形成可展示样板。", "一期核心"],
+  ["数字资产台账", "把模板、流程、知识和版本这四类资产先收口。", "一期核心"],
+  ["手工录入底数", "人工录入不丢人，关键是先把数据体系建立起来。", "务实推进"]
+];
+
+const conductStages = {
+  S1: "S1",
+  S2: "S2",
+  S3: "S3",
+  S4: "S4"
+};
+
+const conductAdminIndexes = new Set([6, 28, 73, 119, 166, 214, 271]);
+const conductScoreRules = window.CONDUCT_SCORE_RULES || [];
+
+let activePage = "dashboard";
+let activeResourceSlide = 0;
+let resourceTimer = null;
+let qaStarted = false;
+let qaBusy = false;
+let students = [];
+let studentsLoaded = false;
+let studentDataMode = "none";
+let selectedConductDetailId = "";
+let currentUser = null;
+
+function qs(id) {
+  return document.getElementById(id);
+}
+
+function renderRoleSelect() {
+  qs("role").innerHTML = roles.map(role => `<option value="${role.id}">${role.role} · ${role.name}</option>`).join("");
+  qs("role").value = "duan";
+}
+
+function applyRole() {
+  const role = getCurrentRole();
+  qs("sideAvatar").textContent = role.avatar;
+  qs("sideName").textContent = role.name;
+  qs("sideRole").textContent = role.role;
+  if (!qs("app").classList.contains("hidden")) renderConductScores();
+}
+
+function getCurrentRole() {
+  if (currentUser) {
+    return {
+      id: currentUser.role || "student",
+      name: currentUser.name || "钉钉用户",
+      role: currentUser.roleName || (currentUser.role === "manager" ? "部门行政人员" : "飞行学员"),
+      avatar: (currentUser.name || "钉").slice(0, 1)
+    };
+  }
+  return roles.find(item => item.id === qs("role").value) || roles[0];
+}
+
+function renderNav() {
+  qs("nav").innerHTML = navItems.map(([id, label]) => (
+    `<button class="${activePage === id ? "active" : ""}" data-go="${id}"><span>${label}</span>${id === "students" ? "<em>基础</em>" : id === "conduct" ? "<em>作风</em>" : id === "courseware" ? "<em>重点</em>" : id === "faculty" ? "<em>优先</em>" : id === "assetsCenter" ? "<em>资产</em>" : ""}</button>`
+  )).join("");
+}
+
+function switchPage(id) {
+  activePage = id;
+  document.querySelectorAll(".page").forEach(page => page.classList.toggle("active", page.id === id));
+  qs("pageTitle").textContent = id === "studentProfile"
+    ? "学员信息主页"
+    : (navItems.find(item => item[0] === id)?.[1] || "工作台");
+  renderNav();
+  if (id === "students" && !studentsLoaded && sessionStorage.getItem("studentViewToken")) {
+    loadStudents();
+  }
+  if (id === "conduct") {
+    if (!studentsLoaded || students.length === 0) {
+      loadDemoStudents();
+      return;
+    }
+    renderConductScores();
+  }
+  if (id === "studentProfile") {
+    renderConductPersonDetail();
+    renderConductEditor();
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function decodeBase64Url(value) {
+  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(normalized.length + ((4 - normalized.length % 4) % 4), "=");
+  const bytes = Uint8Array.from(atob(padded), char => char.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function parseDingTalkSession(token) {
+  const encoded = String(token || "").split(".")[0];
+  if (!encoded) return null;
+  try {
+    const payload = JSON.parse(decodeBase64Url(encoded));
+    if (payload.exp && Date.now() > Number(payload.exp)) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function setLoginError(message = "") {
+  qs("loginError").textContent = message;
+  qs("loginError").classList.toggle("visible", Boolean(message));
+}
+
+function enterApp() {
+  applyRole();
+  qs("loginPage").classList.add("hidden");
+  qs("app").classList.remove("hidden");
+  qs("qaLauncher").classList.remove("hidden");
+  switchPage("dashboard");
+}
+
+function setupDingTalkLogin() {
+  qs("dingtalkLogin").href = window.TRAINING_DINGTALK_LOGIN_URL || "/api/auth/dingtalk/start";
+
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const error = params.get("dingtalk_error");
+  const token = params.get("dingtalk_session");
+  if (error) {
+    setLoginError(error);
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    return;
+  }
+  if (!token) return;
+
+  const session = parseDingTalkSession(token);
+  history.replaceState(null, "", window.location.pathname + window.location.search);
+  if (!session) {
+    setLoginError("钉钉登录票据已失效，请重新登录。");
+    return;
+  }
+  currentUser = session;
+  sessionStorage.setItem("trainingDingTalkSession", token);
+  enterApp();
+}
+
+function restoreDingTalkSession() {
+  const token = sessionStorage.getItem("trainingDingTalkSession");
+  const session = parseDingTalkSession(token);
+  if (!session) {
+    sessionStorage.removeItem("trainingDingTalkSession");
+    return;
+  }
+  currentUser = session;
+}
+
+function renderStudents() {
+  const keyword = qs("studentSearch").value.trim().toLowerCase();
+  const filtered = students.filter(student => (
+    student.name.toLowerCase().includes(keyword)
+    || student.jobNumber.toLowerCase().includes(keyword)
+    || student.title.toLowerCase().includes(keyword)
+  ));
+
+  qs("studentTable").innerHTML = filtered.map(student => {
+    const avatar = student.avatar
+      ? `<img src="${escapeHtml(student.avatar)}" alt="">`
+      : escapeHtml(student.name.slice(0, 1) || "学");
+    return `<tr>
+      <td><div class="student-person"><div class="avatar">${avatar}</div><strong>${escapeHtml(student.name)}</strong></div></td>
+      <td>${escapeHtml(student.jobNumber || "--")}</td>
+      <td>${escapeHtml(student.title || "在队学员")}</td>
+      <td><span class="pill ${student.active ? "green" : ""}">${student.active ? "正常" : "停用"}</span></td>
+    </tr>`;
+  }).join("");
+  qs("studentEmptyState").classList.toggle("hidden", filtered.length > 0);
+}
+
+function createDemoStudents() {
+  const surnames = [
+    "赵", "钱", "孙", "李", "周", "吴", "郑", "王", "冯", "陈",
+    "褚", "卫", "蒋", "沈", "韩", "杨", "朱", "秦", "许", "何"
+  ];
+  const givenNames = [
+    "宇航", "子轩", "浩然", "嘉诚", "明远",
+    "思源", "俊杰", "博文", "天佑", "景行",
+    "睿哲", "承泽", "泽楷", "致远", "弘毅"
+  ];
+  const titles = ["飞行学员", "航线运输驾驶员学员", "理论训练学员", "模拟机训练学员"];
+  const stageKeys = Object.keys(conductStages);
+
+  return surnames.flatMap((surname, surnameIndex) => (
+    givenNames.map((givenName, givenNameIndex) => {
+      const index = surnameIndex * givenNames.length + givenNameIndex;
+      const isConductAdmin = conductAdminIndexes.has(index);
+      return {
+        userId: `demo-${String(index + 1).padStart(3, "0")}`,
+        name: `${surname}${givenName}`,
+        title: isConductAdmin ? "部门行政人员" : titles[index % titles.length],
+        jobNumber: `A${String(29354 + index)}`,
+        active: (index + 1) % 29 !== 0,
+        avatar: "",
+        conductRole: isConductAdmin ? "admin" : "student",
+        conductStage: isConductAdmin ? "" : stageKeys[index % stageKeys.length],
+        conductScore: isConductAdmin ? null : 100,
+        conductRecords: []
+      };
+    })
+  ));
+}
+
+function loadDemoStudents() {
+  students = createDemoStudents();
+  studentsLoaded = true;
+  studentDataMode = "demo";
+  selectedConductDetailId = "";
+  qs("studentDepartment").textContent = "飞行学员管理室（测试）";
+  qs("studentCount").textContent = String(students.length);
+  qs("studentSyncedAt").textContent = "测试数据";
+  qs("studentAccessPanel").classList.add("hidden");
+  qs("studentListPanel").classList.remove("hidden");
+  qs("studentSearch").value = "";
+  setStudentSyncStatus("测试名单", "red");
+  renderStudents();
+  renderConductScores();
+}
+
+async function loadStudents(force = false) {
+  const token = sessionStorage.getItem("studentViewToken") || "";
+  if (!token) {
+    qs("studentAccessPanel").classList.remove("hidden");
+    qs("studentListPanel").classList.add("hidden");
+    return;
+  }
+
+  setStudentSyncStatus("正在同步");
+  qs("studentRefresh").disabled = true;
+  try {
+    const baseUrl = window.TRAINING_STUDENTS_API_URL || "/api/students";
+    const url = `${baseUrl}${force ? `${baseUrl.includes("?") ? "&" : "?"}refresh=1` : ""}`;
+    const response = await fetch(url, {
+      headers: { "X-Student-View-Token": token }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (response.status === 401) sessionStorage.removeItem("studentViewToken");
+      throw new Error(data.error || `名单接口返回 ${response.status}`);
+    }
+
+    students = Array.isArray(data.students) ? data.students : [];
+    studentsLoaded = true;
+    studentDataMode = "dingtalk";
+    selectedConductDetailId = "";
+    qs("studentDepartment").textContent = data.departmentName || "飞行学员管理室";
+    qs("studentCount").textContent = String(students.length);
+    qs("studentSyncedAt").textContent = data.syncedAt
+      ? new Date(data.syncedAt).toLocaleString("zh-CN", { hour12: false })
+      : "尚未同步";
+    qs("studentAccessPanel").classList.add("hidden");
+    qs("studentListPanel").classList.remove("hidden");
+    setStudentSyncStatus("同步完成", "green");
+    renderStudents();
+    renderConductScores();
+  } catch (error) {
+    studentsLoaded = false;
+    setStudentSyncStatus("同步失败", "red");
+    qs("studentAccessPanel").classList.remove("hidden");
+    qs("studentListPanel").classList.add("hidden");
+    const message = error instanceof TypeError
+      ? "名单服务暂时无法连接，请稍后重试。"
+      : (error.message || "暂时无法读取钉钉名单");
+    qs("studentAccessPanel").querySelector("p").textContent = message;
+  } finally {
+    qs("studentRefresh").disabled = false;
+  }
+}
+
+function setStudentSyncStatus(text, tone = "") {
+  qs("studentSyncStatus").textContent = text;
+  qs("studentSyncStatus").className = `pill${tone ? ` ${tone}` : ""}`;
+}
+
+function canManageConduct() {
+  const roleId = currentUser?.role || qs("role").value;
+  return ["duan", "manager"].includes(roleId);
+}
+
+function ensureConductModel() {
+  const stageKeys = Object.keys(conductStages);
+  students = students.map((student, index) => {
+    if (student.conductRole) return student;
+    return {
+      ...student,
+      conductRole: "student",
+      conductStage: stageKeys[index % stageKeys.length],
+      conductScore: 100,
+      conductRecords: []
+    };
+  });
+}
+
+function getConductRows() {
+  ensureConductModel();
+  const keyword = qs("conductSearch").value.trim().toLowerCase();
+  const stage = qs("conductStageFilter").value;
+  return students.filter(student => {
+    const roleMatched = stage === "all"
+      || (stage === "admin" && student.conductRole === "admin")
+      || student.conductStage === stage;
+    const textMatched = !keyword
+      || student.name.toLowerCase().includes(keyword)
+      || String(student.jobNumber || "").toLowerCase().includes(keyword)
+      || String(student.title || "").toLowerCase().includes(keyword)
+      || String(student.conductStage || "").toLowerCase().includes(keyword);
+    return roleMatched && textMatched;
+  });
+}
+
+function renderConductScores() {
+  if (!studentsLoaded || students.length === 0) {
+    qs("conductTable").innerHTML = "";
+    qs("conductStudentCount").textContent = "--";
+    qs("conductAdminCount").textContent = "--";
+    qs("conductAverage").textContent = "--";
+    qs("conductLedgerStatus").textContent = "等待数据";
+    qs("conductEmptyState").classList.remove("hidden");
+    return;
+  }
+
+  const editable = canManageConduct();
+  qs("conductPermission").textContent = editable ? "管理可编辑" : "学员只读";
+  qs("conductPermission").className = `pill${editable ? " green" : ""}`;
+  qs("conductEditStatus").textContent = editable ? "可调整" : "只读";
+  qs("conductEditStatus").className = `pill${editable ? " green" : ""}`;
+
+  const rows = getConductRows();
+  const learnerRows = students.filter(student => student.conductRole !== "admin");
+  const adminRows = students.filter(student => student.conductRole === "admin");
+  const average = learnerRows.length
+    ? learnerRows.reduce((sum, student) => sum + Number(student.conductScore || 0), 0) / learnerRows.length
+    : 0;
+
+  qs("conductStudentCount").textContent = String(learnerRows.length);
+  qs("conductAdminCount").textContent = String(adminRows.length);
+  qs("conductAverage").textContent = learnerRows.length ? average.toFixed(1) : "--";
+  qs("conductLedgerStatus").textContent = `${rows.length} 条`;
+
+  qs("conductTable").innerHTML = rows.map(student => {
+    const isAdmin = student.conductRole === "admin";
+    const latest = student.conductRecords?.[0];
+    const latestText = latest
+      ? `${latest.type}${latest.value}：${latest.reason || "未填写原因"}`
+      : "暂无记录";
+    const score = isAdmin ? "不计分" : `<strong>${Number(student.conductScore || 0)}</strong>`;
+    const roleText = isAdmin ? "部门行政人员" : conductStages[student.conductStage] || "未分配阶段";
+    return `<tr>
+      <td><div class="student-person"><div class="avatar">${escapeHtml(student.name.slice(0, 1) || "学")}</div><button class="person-link" type="button" data-conduct-person="${escapeHtml(student.userId)}">${escapeHtml(student.name)}</button></div></td>
+      <td>${escapeHtml(student.jobNumber || "--")}</td>
+      <td>${escapeHtml(roleText)}</td>
+      <td>${score}</td>
+      <td>${escapeHtml(latestText)}</td>
+      <td><span class="pill ${isAdmin ? "red" : "green"}">${isAdmin ? "管理" : "查看"}</span></td>
+    </tr>`;
+  }).join("");
+  qs("conductEmptyState").classList.toggle("hidden", rows.length > 0);
+}
+
+function getConductScoreStatus(score) {
+  const value = Number(score);
+  if (value <= 70) return { text: "不及格/报部门研究", tone: "red" };
+  if (value <= 80) return { text: "中心研究/部门审批", tone: "orange" };
+  if (value <= 85) return { text: "中心以上领导谈话", tone: "orange" };
+  if (value <= 90) return { text: "科室警示谈话", tone: "amber" };
+  if (value >= 121) return { text: "杰出", tone: "green" };
+  if (value >= 101) return { text: "优秀", tone: "green" };
+  return { text: "基础", tone: "" };
+}
+
+function getConductRule(ruleId) {
+  return conductScoreRules.find(rule => rule.id === ruleId) || conductScoreRules[0] || null;
+}
+
+function formatSignedScore(value) {
+  return `${value > 0 ? "+" : ""}${value} 分`;
+}
+
+function renderConductRuleSelect() {
+  if (!conductScoreRules.length) return;
+  const currentRuleId = qs("conductRuleSelect").value || conductScoreRules[0].id;
+  const groups = [...new Set(conductScoreRules.map(rule => `${rule.dimension}｜${rule.module}`))];
+  qs("conductRuleSelect").innerHTML = groups.map(group => {
+    const [dimension, module] = group.split("｜");
+    const options = conductScoreRules
+      .filter(rule => rule.dimension === dimension && rule.module === module)
+      .map(rule => {
+        const values = rule.values.map(formatSignedScore).join(" / ");
+        return `<option value="${escapeHtml(rule.id)}">${escapeHtml(values)}｜${escapeHtml(rule.title)}</option>`;
+      }).join("");
+    return `<optgroup label="${escapeHtml(group)}">${options}</optgroup>`;
+  }).join("");
+  if (conductScoreRules.some(rule => rule.id === currentRuleId)) {
+    qs("conductRuleSelect").value = currentRuleId;
+  }
+  renderConductRuleValue();
+}
+
+function renderConductRuleValue() {
+  const rule = getConductRule(qs("conductRuleSelect").value);
+  if (!rule) {
+    qs("conductRuleValue").innerHTML = "";
+    return;
+  }
+  const currentValue = qs("conductRuleValue").value;
+  qs("conductRuleValue").innerHTML = rule.values.map(value => (
+    `<option value="${value}">${escapeHtml(formatSignedScore(value))}</option>`
+  )).join("");
+  if (rule.values.map(String).includes(currentValue)) {
+    qs("conductRuleValue").value = currentValue;
+  }
+  qs("conductReason").placeholder = `${rule.title}${rule.source ? `；渠道：${rule.source}` : ""}`;
+}
+
+function renderConductPersonDetail() {
+  const student = students.find(item => item.userId === selectedConductDetailId);
+  if (!student) {
+    qs("profileTitle").textContent = "学员信息主页";
+    if (activePage === "studentProfile") qs("pageTitle").textContent = "学员信息主页";
+    qs("conductPersonDetail").innerHTML = `
+      <div class="score-readonly">
+        <strong>暂无人员信息</strong>
+        <span>请从作风分台账点击人员姓名进入学员信息主页。</span>
+      </div>
+    `;
+    return;
+  }
+
+  const isAdmin = student.conductRole === "admin";
+  const roleText = isAdmin ? "部门行政人员" : "学员";
+  const stageText = isAdmin ? "行政" : (conductStages[student.conductStage] || "未分配");
+  const scoreText = isAdmin ? "不计分" : `${Number(student.conductScore || 0)} 分`;
+  const scoreStatus = isAdmin ? null : getConductScoreStatus(student.conductScore || 0);
+  const records = (student.conductRecords || []).slice(0, 5);
+  qs("profileTitle").textContent = `${student.name} 信息主页`;
+  if (activePage === "studentProfile") qs("pageTitle").textContent = `${student.name} 信息主页`;
+  qs("conductPersonDetail").innerHTML = `
+    <div class="person-detail-head">
+      <div class="avatar">${escapeHtml(student.name.slice(0, 1) || "学")}</div>
+      <div><h4>${escapeHtml(student.name)}</h4><span>${escapeHtml(student.jobNumber || "--")}</span></div>
+    </div>
+    <div class="person-detail-grid">
+      <div class="person-detail-item"><span>角色</span><strong>${escapeHtml(roleText)}</strong></div>
+      <div class="person-detail-item"><span>阶段</span><strong>${escapeHtml(stageText)}</strong></div>
+      <div class="person-detail-item"><span>岗位</span><strong>${escapeHtml(student.title || "--")}</strong></div>
+      <div class="person-detail-item"><span>当前作风分数</span><strong class="score-value">${escapeHtml(scoreText)}${scoreStatus ? `<em class="pill ${escapeHtml(scoreStatus.tone)}">${escapeHtml(scoreStatus.text)}</em>` : ""}</strong></div>
+      <div class="person-detail-item"><span>钉钉状态</span><strong>${student.active ? "正常" : "停用"}</strong></div>
+      <div class="person-detail-item"><span>工号</span><strong>${escapeHtml(student.jobNumber || "--")}</strong></div>
+    </div>
+    <div class="record-list">
+      ${records.length
+        ? records.map(record => `<div class="record-row"><strong>${escapeHtml(record.type)}${escapeHtml(record.value)} 分</strong> ${escapeHtml(record.ruleTitle || record.reason || "未填写原因")}<br>${escapeHtml(record.dimension || "手工调整")}${record.source ? ` · ${escapeHtml(record.source)}` : ""}<br>${escapeHtml(record.operator || "--")} · ${escapeHtml(record.time || "--")}${record.reason && record.ruleTitle ? `<br>备注：${escapeHtml(record.reason)}` : ""}</div>`).join("")
+        : `<div class="record-row"><strong>暂无作风记录</strong><br>当前人员还没有加减分记录。</div>`}
+    </div>
+  `;
+}
+
+function renderConductEditor() {
+  const editable = canManageConduct();
+  const student = students.find(item => item.userId === selectedConductDetailId);
+  const canEditThisStudent = editable && student && student.conductRole !== "admin";
+  qs("conductReadonly").classList.toggle("hidden", canEditThisStudent);
+  qs("conductForm").classList.toggle("hidden", !canEditThisStudent);
+  qs("conductEditStatus").textContent = canEditThisStudent ? "可调整" : "只读";
+  qs("conductEditStatus").className = `pill${canEditThisStudent ? " green" : ""}`;
+  if (canEditThisStudent) renderConductRuleSelect();
+  if (!editable) {
+    qs("conductReadonly").querySelector("span").textContent = "管理员可在此主页对当前学员作风分进行加减分管理。";
+  } else if (student?.conductRole === "admin") {
+    qs("conductReadonly").querySelector("span").textContent = "部门行政人员不计入学员作风分，不能进行加减分。";
+  } else if (!student) {
+    qs("conductReadonly").querySelector("span").textContent = "请先从作风分台账选择一名学员。";
+  }
+}
+
+function saveConductAdjustment(event) {
+  event.preventDefault();
+  if (!canManageConduct()) return;
+  const studentId = selectedConductDetailId;
+  const target = students.find(student => student.userId === studentId);
+  if (!target || target.conductRole === "admin") return;
+  const rule = getConductRule(qs("conductRuleSelect").value);
+  if (!rule) return;
+  const value = Number(qs("conductRuleValue").value || rule.values[0]);
+  const type = value > 0 ? "+" : "-";
+  const reason = qs("conductReason").value.trim();
+  students = students.map(student => {
+    if (student.userId !== studentId || student.conductRole === "admin") return student;
+    const nextScore = Math.max(0, Number(student.conductScore || 100) + value);
+    const record = {
+      type,
+      value: Math.abs(value),
+      reason,
+      ruleId: rule.id,
+      ruleTitle: rule.title,
+      dimension: rule.dimension,
+      module: rule.module,
+      source: rule.source,
+      operator: qs("sideName").textContent,
+      time: new Date().toLocaleString("zh-CN", { hour12: false })
+    };
+    return {
+      ...student,
+      conductScore: nextScore,
+      conductRecords: [record, ...(student.conductRecords || [])]
+    };
+  });
+  selectedConductDetailId = studentId;
+  qs("conductReason").value = "";
+  renderConductRuleValue();
+  renderConductScores();
+  renderConductPersonDetail();
+  renderConductEditor();
+}
+
+function renderCards() {
+  qs("loginStats").innerHTML = loginStats.map(item => `<div class="login-stat"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("");
+  qs("heroStats").innerHTML = heroStats.map(item => `<div class="hero-stat"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("");
+  qs("leaderFocus").innerHTML = leaderFocus.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn" data-go="roadmap">查看</button></div>`).join("");
+  qs("metricGrid").innerHTML = metrics.map(item => `<div class="metric"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("");
+  qs("dashboardLinks").innerHTML = dashboardLinks.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("coursewareModes").innerHTML = coursewareModes.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p><ul>${item[2].map(text => `<li>${text}</li>`).join("")}</ul></article>`).join("");
+  qs("coursewareChecklist").innerHTML = coursewareChecklist.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">跟进</button></div>`).join("");
+  qs("coursewareScenes").innerHTML = coursewareScenes.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("facultyFlow").innerHTML = facultyFlow.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">查看</button></div>`).join("");
+  qs("facultyPortrait").innerHTML = facultyPortrait.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("facultyRisks").innerHTML = facultyRisks.map(item => `<tr><td>${item[0]}</td><td>${item[1]}</td><td><span class="pill ${item[2] === "高" ? "red" : item[2] === "推进中" ? "green" : ""}">${item[2]}</span></td></tr>`).join("");
+  qs("assetTypes").innerHTML = assetTypes.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("assetLedger").innerHTML = assetLedger.map(item => `<tr><td>${item[0]}</td><td>${item[1]}</td><td><span class="pill">${item[2]}</span></td></tr>`).join("");
+  qs("assetFlows").innerHTML = assetFlows.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">复用</button></div>`).join("");
+  qs("orgTree").innerHTML = orgTree.map(item => `<article class="org-card"><h4>${item[0]}</h4><div class="org-children">${item[1].map(text => `<span>${text}</span>`).join("")}</div></article>`).join("");
+  qs("orgPriority").innerHTML = orgPriority.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn" data-go="dashboard">返回</button></div>`).join("");
+  qs("resourceSummary").innerHTML = resourceSummary.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p><strong>${item[1]}</strong></p><p style="margin-top:8px">${item[2]}</p></article>`).join("");
+  qs("resourceStacks").innerHTML = resourceStacks.map(item => `<article class="feature-card"><h4>${item[0]}</h4><ul>${item[1].map(text => `<li>${text}</li>`).join("")}</ul></article>`).join("");
+  renderResourceCarousel();
+  qs("reportMetrics").innerHTML = reportMetrics.map(item => `<div class="metric"><strong>${item[0]}</strong><span>${item[1]}</span></div>`).join("");
+  qs("reportFocus").innerHTML = reportFocus.map(item => `<article class="feature-card"><h4>${item[0]}</h4><p>${item[1]}</p></article>`).join("");
+  qs("reportActions").innerHTML = reportActions.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">执行</button></div>`).join("");
+  qs("roadmapStages").innerHTML = roadmapStages.map(item => `<article class="stage"><strong>${item[0]}</strong><h4>${item[1]}</h4><p>${item[2]}</p><ul>${item[3].map(text => `<li>${text}</li>`).join("")}</ul></article>`).join("");
+  qs("phaseOne").innerHTML = phaseOne.map(item => `<div class="list-row"><span class="tag">${item[2]}</span><div><b>${item[0]}</b><p>${item[1]}</p></div><button class="btn">跟踪</button></div>`).join("");
+}
+
+function renderResourceCarousel() {
+  const slide = resourceSlides[activeResourceSlide];
+  qs("resourceCarousel").innerHTML = `
+    <div class="carousel-stage">
+      <img src="${slide.image}" alt="${slide.alt}">
+      <div class="carousel-caption">
+        <div><h3>${slide.title}</h3><p>${slide.text}</p></div>
+        <div class="carousel-controls">
+          <button class="carousel-btn" data-carousel="prev" aria-label="上一张">‹</button>
+          <button class="carousel-btn" data-carousel="next" aria-label="下一张">›</button>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-thumbs">
+      ${resourceSlides.map((item, index) => `<button class="carousel-thumb ${index === activeResourceSlide ? "active" : ""}" data-slide="${index}">${item.title}<span>${item.alt}</span></button>`).join("")}
+    </div>
+  `;
+}
+
+function switchResourceSlide(nextIndex) {
+  activeResourceSlide = (nextIndex + resourceSlides.length) % resourceSlides.length;
+  renderResourceCarousel();
+}
+
+function startResourceCarousel() {
+  if (resourceTimer) clearInterval(resourceTimer);
+  resourceTimer = setInterval(() => {
+    switchResourceSlide(activeResourceSlide + 1);
+  }, 5200);
+}
+
+function tick() {
+  qs("clock").textContent = new Date().toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function addQaMessage(role, text, sources = []) {
+  const item = document.createElement("div");
+  item.className = `qa-message ${role}`;
+  item.textContent = text;
+
+  if (sources.length) {
+    const sourceBox = document.createElement("div");
+    sourceBox.className = "qa-sources";
+
+    const label = document.createElement("span");
+    label.textContent = "参考来源：";
+    sourceBox.appendChild(label);
+
+    sources.forEach((src, idx) => {
+      if (idx > 0) {
+        sourceBox.appendChild(document.createTextNode("、"));
+      }
+      const title = typeof src === "string" ? src : (src.title || "未命名文档");
+      const url = typeof src === "object" && src.url ? String(src.url) : (window.TRAINING_QA_SHARED_KB_URL || null);
+      if (url) {
+        const link = document.createElement("a");
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = title;
+        sourceBox.appendChild(link);
+      } else {
+        const span = document.createElement("span");
+        span.textContent = title;
+        sourceBox.appendChild(span);
+      }
+    });
+
+    item.appendChild(sourceBox);
+  }
+
+  qs("qaMessages").appendChild(item);
+  qs("qaMessages").scrollTop = qs("qaMessages").scrollHeight;
+}
+
+function openQaPanel() {
+  qs("qaPanel").classList.remove("hidden");
+  qs("qaLauncher").setAttribute("aria-expanded", "true");
+  if (!qaStarted) {
+    addQaMessage("bot", "你好，我是培训部知识库助手。可以问我课件标准、教员资质、数字资产、训练资源和建设路线相关问题。");
+    qaStarted = true;
+  }
+  warmupKnowledgeBase();
+  qs("qaInput").focus();
+}
+
+function closeQaPanel() {
+  qs("qaPanel").classList.add("hidden");
+  qs("qaLauncher").setAttribute("aria-expanded", "false");
+}
+
+async function askKnowledgeBase(question) {
+  const apiUrl = window.TRAINING_QA_API_URL || "/api/qa/ask";
+  const response = await fetch(apiUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question,
+      user: qs("sideName").textContent,
+      role: qs("sideRole").textContent,
+      page: activePage
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`知识库接口返回 ${response.status}`);
+  }
+
+  return response.json();
+}
+
+async function warmupKnowledgeBase() {
+  try {
+    const apiUrl = window.TRAINING_QA_API_URL || "/api/qa/ask";
+    await fetch(apiUrl, {
+      method: "OPTIONS"
+    });
+  } catch {
+    // Best-effort warmup for free-tier cold starts.
+  }
+}
+
+async function submitQaQuestion(event) {
+  event.preventDefault();
+  if (qaBusy) return;
+
+  const question = qs("qaInput").value.trim();
+  if (!question) return;
+
+  qaBusy = true;
+  qs("qaSend").disabled = true;
+  qs("qaInput").value = "";
+  addQaMessage("user", question);
+  addQaMessage("bot", "正在检索知识库...");
+
+  try {
+    const data = await askKnowledgeBase(question);
+    const pending = qs("qaMessages").lastElementChild;
+    if (pending?.textContent === "正在检索知识库...") pending.remove();
+    addQaMessage("bot", data.answer || "知识库暂时没有返回答案。", data.sources || []);
+  } catch (error) {
+    const pending = qs("qaMessages").lastElementChild;
+    if (pending?.textContent === "正在检索知识库...") pending.remove();
+    addQaMessage("bot", `知识库接口暂时不可用：${error.message || "请稍后重试"}`);
+  } finally {
+    qaBusy = false;
+    qs("qaSend").disabled = false;
+    qs("qaInput").focus();
+  }
+}
+
+renderRoleSelect();
+renderNav();
+renderCards();
+restoreDingTalkSession();
+applyRole();
+tick();
+setInterval(tick, 30000);
+startResourceCarousel();
+setupDingTalkLogin();
+
+document.body.addEventListener("click", (event) => {
+  const person = event.target.closest("[data-conduct-person]");
+  if (person) {
+    selectedConductDetailId = person.dataset.conductPerson || "";
+    switchPage("studentProfile");
+    return;
+  }
+  const go = event.target.closest("[data-go]");
+  if (go) switchPage(go.dataset.go);
+  const carousel = event.target.closest("[data-carousel]");
+  if (carousel) {
+    switchResourceSlide(activeResourceSlide + (carousel.dataset.carousel === "next" ? 1 : -1));
+    startResourceCarousel();
+  }
+  const slide = event.target.closest("[data-slide]");
+  if (slide) {
+    switchResourceSlide(Number(slide.dataset.slide) || 0);
+    startResourceCarousel();
+  }
+});
+
+qs("qaLauncher").addEventListener("click", openQaPanel);
+qs("qaClose").addEventListener("click", closeQaPanel);
+qs("qaForm").addEventListener("submit", submitQaQuestion);
+qs("qaInput").addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    submitQaQuestion(event);
+  }
+});
+
+qs("studentAccessForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const token = qs("studentAccessToken").value.trim();
+  if (!token) return;
+  sessionStorage.setItem("studentViewToken", token);
+  qs("studentAccessToken").value = "";
+  loadStudents();
+});
+qs("studentSearch").addEventListener("input", renderStudents);
+qs("studentRefresh").addEventListener("click", () => {
+  if (studentDataMode === "demo") {
+    loadDemoStudents();
+    return;
+  }
+  loadStudents(true);
+});
+qs("studentDemo").addEventListener("click", loadDemoStudents);
+qs("conductSearch").addEventListener("input", renderConductScores);
+qs("conductStageFilter").addEventListener("change", renderConductScores);
+qs("conductRuleSelect").addEventListener("change", renderConductRuleValue);
+qs("conductForm").addEventListener("submit", saveConductAdjustment);
+qs("role").addEventListener("change", () => {
+  if (!qs("loginPage").classList.contains("hidden")) return;
+  applyRole();
+});
+
+qs("loginForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  currentUser = null;
+  sessionStorage.removeItem("trainingDingTalkSession");
+  setLoginError("");
+  enterApp();
+});
+
+qs("logout").addEventListener("click", () => {
+  qs("app").classList.add("hidden");
+  qs("loginPage").classList.remove("hidden");
+  qs("qaLauncher").classList.add("hidden");
+  sessionStorage.removeItem("studentViewToken");
+  sessionStorage.removeItem("trainingDingTalkSession");
+  currentUser = null;
+  students = [];
+  studentsLoaded = false;
+  studentDataMode = "none";
+  selectedConductDetailId = "";
+  closeQaPanel();
+});
+</script>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

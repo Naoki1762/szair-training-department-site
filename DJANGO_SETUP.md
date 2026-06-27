@@ -92,6 +92,20 @@ python manage.py seed_demo_people --count 300
 
 如果没有配置 `DB_ENGINE=mysql`，项目会继续使用本地 SQLite 作为开发兜底。
 
+## 本地虚拟科室数据库
+
+在真实科室数据库准备好之前，可以先用 Docker 启动一个本地虚拟 MySQL。详见：
+
+```text
+LOCAL_MYSQL.md
+```
+
+本地虚拟数据库配置模板：
+
+```text
+.env.mysql.example
+```
+
 ## 当前迁移范围
 
 - `/` 由 Django 应用优先渲染 Vue/Vite 构建后的 `dist/index.html`。

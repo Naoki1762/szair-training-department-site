@@ -32,6 +32,7 @@ https://training-qa-api-naoki1762.onrender.com
 
 - Django 5.2.15：后台管理、数据库、接口
 - MySQL：正式/多人使用数据库，通过 `DB_ENGINE=mysql` 启用
+- Docker Compose：用于本地虚拟科室 MySQL 数据库
 - SQLite：仅作为未配置 MySQL 时的本地开发兜底，文件为 `db.sqlite3`，不提交 Git
 - Vue 3.5.39 + Vite 8.1.0：前台构建层
 - 原 Node 后端文件仍保留：`server.js`、`api/`、`lib/`
@@ -79,6 +80,18 @@ http://127.0.0.1:8000/admin/
 ```
 
 ## 数据库初始化
+
+真实科室数据库未准备好时，先用本地虚拟 MySQL。流程见 `LOCAL_MYSQL.md`：
+
+```bash
+cp .env.mysql.example .env
+docker compose up -d mysql
+source .venv/bin/activate
+python manage.py migrate
+python manage.py import_conduct_rules
+python manage.py seed_demo_people --count 300
+python manage.py ensure_admin_user
+```
 
 正式/多人使用请配置 MySQL：
 

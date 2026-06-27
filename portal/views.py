@@ -2,13 +2,15 @@ import json
 import os
 from urllib.parse import urlencode
 
+from django.contrib.auth import authenticate, login, logout
 from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_safe
 
-from .models import ConductRecord, StudentProfile
+from .models import ConductRecord, ConductRule, LoginAudit, PersonProfile, ResourceCategory, StudentProfile, TrainingResource
+from .services import audit, can_manage_conduct, can_manage_people, can_manage_resources, get_client_ip, get_person_for_user, get_user_agent
 
 
 DEMO_KNOWLEDGE = [
@@ -45,6 +47,48 @@ def health(request):
     return JsonResponse({"status": "ok", "service": "training-platform-django"})
 
 
+@require_GET
+def current_user(request):
+    return JsonResponse(serialize_user_session(request.user))
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def local_login(request):
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "请求体不是有效 JSON"}, status=400)
+
+    username = str(payload.get("username", "")).strip()
+    password = str(payload.get("password", ""))
+    user = authenticate(request, username=username, password=password)
+    person = get_person_for_user(user)
+    LoginAudit.objects.create(
+        person=person,
+        provider="local",
+        ip_address=get_client_ip(request),
+        user_agent=get_user_agent(request),
+        success=bool(user),
+        message="本地账号登录" if user else f"本地账号登录失败：{username}",
+    )
+    if not user:
+        return JsonResponse({"error": "账号或密码不正确"}, status=401)
+
+    login(request, user)
+    audit(request, "login", summary=f"{username} 登录")
+    return JsonResponse(serialize_user_session(request.user))
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def local_logout(request):
+    username = request.user.get_username() if request.user.is_authenticated else ""
+    audit(request, "logout", summary=f"{username} 退出登录")
+    logout(request)
+    return JsonResponse({"ok": True})
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def ask_question(request):
@@ -71,6 +115,8 @@ def ask_question(request):
 
 @require_GET
 def students(request):
+    if not (request.user.is_authenticated or os.environ.get("ALLOW_PUBLIC_STUDENT_API", "1") == "1"):
+        return JsonResponse({"error": "请先登录"}, status=401)
     queryset = (
         StudentProfile.objects.select_related("person", "person__department")
         .prefetch_related(
@@ -78,6 +124,123 @@ def students(request):
         )
         .order_by("stage", "person__employee_no")
     )
+    students_data = [serialize_student(student) for student in queryset]
+    return JsonResponse(
+        {
+            "departmentName": "飞行学员管理室",
+            "syncedAt": None,
+            "source": "django-database",
+            "students": students_data,
+        }
+    )
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_conduct_record(request):
+    if not can_manage_conduct(request.user):
+        return JsonResponse({"error": "没有作风分管理权限"}, status=403)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "请求体不是有效 JSON"}, status=400)
+
+    student_id = str(payload.get("studentId", "")).strip()
+    rule_id = str(payload.get("ruleId", "")).strip()
+    reason = str(payload.get("reason", "")).strip()
+    try:
+        score_delta = int(payload.get("scoreDelta"))
+    except (TypeError, ValueError):
+        return JsonResponse({"error": "分值不正确"}, status=400)
+
+    student = (
+        StudentProfile.objects.select_related("person")
+        .filter(person__ding_user_id=student_id)
+        .first()
+        or StudentProfile.objects.select_related("person").filter(person_id=student_id).first()
+    )
+    if not student:
+        return JsonResponse({"error": "未找到学员"}, status=404)
+    if student.person.excluded_from_conduct_score:
+        return JsonResponse({"error": "行政人员不计作风分"}, status=400)
+
+    rule = ConductRule.objects.filter(rule_id=rule_id, is_active=True).first()
+    if not rule:
+        return JsonResponse({"error": "未找到制度项目"}, status=404)
+    if score_delta not in [int(value) for value in rule.values]:
+        return JsonResponse({"error": "分值不属于该制度项目"}, status=400)
+
+    record = ConductRecord.objects.create(
+        student=student,
+        rule=rule,
+        score_delta=score_delta,
+        reason=reason,
+        recorded_by=request.user,
+    )
+    audit(
+        request,
+        "conduct.create",
+        target=record,
+        summary=f"{student.person.name} {score_delta:+d}",
+        metadata={"student": student.person.employee_no, "rule": rule.rule_id, "reason": reason},
+    )
+    student.refresh_from_db()
+    return JsonResponse({"ok": True, "student": serialize_student(student), "record": serialize_conduct_record(record)})
+
+
+@require_GET
+def resources(request):
+    queryset = TrainingResource.objects.select_related("category", "uploaded_by").filter(is_active=True)
+    person = get_person_for_user(request.user)
+    if not request.user.is_authenticated or (person and person.role == PersonProfile.Role.STUDENT):
+        queryset = queryset.filter(visibility=TrainingResource.Visibility.ALL)
+    elif not can_manage_people(request.user):
+        queryset = queryset.exclude(visibility=TrainingResource.Visibility.MANAGERS)
+
+    category = request.GET.get("category", "").strip()
+    if category:
+        queryset = queryset.filter(category__name=category)
+    return JsonResponse(
+        {
+            "categories": [serialize_resource_category(item) for item in ResourceCategory.objects.filter(is_active=True)],
+            "resources": [serialize_resource(item, request) for item in queryset[:200]],
+        }
+    )
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def upload_resource(request):
+    if not can_manage_resources(request.user):
+        return JsonResponse({"error": "没有资源库管理权限"}, status=403)
+
+    file_obj = request.FILES.get("file")
+    title = request.POST.get("title", "").strip()
+    if not file_obj:
+        return JsonResponse({"error": "请选择上传文件"}, status=400)
+    if not title:
+        title = file_obj.name
+
+    category = None
+    category_id = request.POST.get("categoryId", "").strip()
+    if category_id:
+        category = ResourceCategory.objects.filter(pk=category_id, is_active=True).first()
+
+    resource = TrainingResource.objects.create(
+        title=title,
+        category=category,
+        description=request.POST.get("description", "").strip(),
+        file=file_obj,
+        file_size=file_obj.size or 0,
+        content_type=getattr(file_obj, "content_type", "") or "",
+        version=request.POST.get("version", "").strip(),
+        visibility=request.POST.get("visibility", TrainingResource.Visibility.ALL),
+        applicable_stage=request.POST.get("applicableStage", "").strip(),
+        uploaded_by=request.user,
+    )
+    audit(request, "resource.upload", target=resource, summary=resource.title, metadata={"file": resource.file.name})
+    return JsonResponse({"ok": True, "resource": serialize_resource(resource, request)}, status=201)
     students_data = [serialize_student(student) for student in queryset]
     if students_data:
         return JsonResponse(
@@ -130,6 +293,61 @@ def serialize_student(student):
         "conductStage": "" if person.excluded_from_conduct_score else student.stage,
         "conductScore": None if person.excluded_from_conduct_score else student.current_score,
         "conductRecords": records,
+    }
+
+
+def serialize_user_session(user):
+    person = get_person_for_user(user)
+    return {
+        "authenticated": user.is_authenticated,
+        "username": user.get_username() if user.is_authenticated else "",
+        "isStaff": bool(user.is_staff) if user.is_authenticated else False,
+        "permissions": {
+            "managePeople": can_manage_people(user),
+            "manageConduct": can_manage_conduct(user),
+            "manageResources": can_manage_resources(user),
+        },
+        "person": serialize_person(person) if person else None,
+    }
+
+
+def serialize_person(person):
+    return {
+        "id": person.pk,
+        "name": person.name,
+        "employeeNo": person.employee_no,
+        "role": person.role,
+        "roleName": person.get_role_display(),
+        "department": person.department.name if person.department else "",
+        "position": person.position,
+        "canManageConduct": person.can_manage_conduct,
+        "excludedFromConductScore": person.excluded_from_conduct_score,
+    }
+
+
+def serialize_resource_category(category):
+    return {
+        "id": category.pk,
+        "name": category.name,
+        "parentId": category.parent_id,
+    }
+
+
+def serialize_resource(resource, request):
+    return {
+        "id": resource.pk,
+        "title": resource.title,
+        "category": resource.category.name if resource.category else "",
+        "description": resource.description,
+        "url": request.build_absolute_uri(resource.file.url) if resource.file else "",
+        "fileName": resource.file.name.rsplit("/", 1)[-1] if resource.file else "",
+        "fileSize": resource.file_size,
+        "contentType": resource.content_type,
+        "version": resource.version,
+        "visibility": resource.visibility,
+        "applicableStage": resource.applicable_stage,
+        "uploadedBy": resource.uploaded_by.get_username() if resource.uploaded_by else "",
+        "updatedAt": resource.updated_at.strftime("%Y-%m-%d %H:%M:%S"),
     }
 
 

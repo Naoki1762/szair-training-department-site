@@ -44,6 +44,8 @@ https://training-qa-api-naoki1762.onrender.com
 - `frontend/`：Vue 前台源码
 - `dist/`：Vue/Vite 构建产物，Django 首页优先渲染这里的 `index.html`
 - `assets/`：图片、作风量化规则、问答配置等静态资源
+- `media/`：资源库上传文件目录，不提交 Git
+- `backups/`：手动备份输出目录，不提交 Git
 - `index.html`：原静态版本兼容入口，暂时保留
 - `DJANGO_SETUP.md`：Django 运行和后台说明
 
@@ -127,6 +129,8 @@ python manage.py seed_demo_people --count 300
 - 作风分制度项目来自《飞行学员安全作风量化管理规定2026.6》附表一 97 条规则。
 - 前台首页已有“进入管理后台”入口。
 - Django Admin 可管理科室/部门、人员档案、学员档案、作风量化规则、作风分记录和登录审计。
+- 已有本地账号登录、当前用户权限、作风分后端写入、资源库上传/列表和操作审计 API。
+- 已有 `backup_system` 备份命令，可导出业务数据和媒体文件。
 
 ## 备份与回退
 
@@ -147,6 +151,8 @@ source .venv/bin/activate
 python manage.py check
 python manage.py test portal
 ```
+
+生产环境建议设置 `ALLOW_PUBLIC_STUDENT_API=0`，避免未登录访问学员接口。
 
 涉及前台构建时还要运行：
 

@@ -46,6 +46,8 @@ http://127.0.0.1:8000/admin/
 - 学员档案
 - 作风量化规则
 - 作风分记录
+- 培训资源库
+- 操作审计
 - 登录审计
 
 本地数据库初始化命令：
@@ -91,6 +93,33 @@ python manage.py seed_demo_people --count 300
 ```
 
 如果没有配置 `DB_ENGINE=mysql`，项目会继续使用本地 SQLite 作为开发兜底。
+
+## 生产功能底座
+
+当前已补齐这些生产底座：
+
+- `/api/auth/login`：本地账号登录接口
+- `/api/auth/logout`：退出登录接口
+- `/api/auth/me`：当前用户和权限接口
+- `/api/conduct/records`：后端作风分写入接口，会记录操作审计
+- `/api/resources`：资源库列表接口
+- `/api/resources/upload`：资源上传接口，仅教员/管理人员/后台管理员可用
+- `media/`：本地资源文件目录，正式部署可替换为内网 NAS 路径
+- `backup_system`：数据库业务数据和媒体文件备份命令
+
+生产环境建议设置：
+
+```text
+ALLOW_PUBLIC_STUDENT_API=0
+DJANGO_MEDIA_ROOT=/var/lib/szair-training/media
+```
+
+手动备份：
+
+```bash
+source .venv/bin/activate
+python manage.py backup_system
+```
 
 ## 本地虚拟科室数据库
 

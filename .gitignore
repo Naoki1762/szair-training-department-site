@@ -8,6 +8,8 @@ __pycache__/
 *.py[cod]
 db.sqlite3
 staticfiles/
+media/
+backups/
 .vercel/
 npm-debug.log*
 yarn-debug.log*

@@ -206,3 +206,112 @@ class LoginAudit(models.Model):
     def __str__(self):
         status = "成功" if self.success else "失败"
         return f"{self.person or '未知人员'} {status}"
+
+
+class ResourceCategory(models.Model):
+    name = models.CharField("分类名称", max_length=100, unique=True)
+    parent = models.ForeignKey(
+        "self",
+        verbose_name="上级分类",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="children",
+    )
+    sort_order = models.PositiveIntegerField("排序", default=0)
+    is_active = models.BooleanField("启用", default=True)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "资源分类"
+        verbose_name_plural = "资源分类"
+
+    def __str__(self):
+        return self.name
+
+
+class TrainingResource(models.Model):
+    class Visibility(models.TextChoices):
+        ALL = "all", "全员可见"
+        STAFF = "staff", "管理人员/教员可见"
+        MANAGERS = "managers", "仅管理人员可见"
+
+    title = models.CharField("资源标题", max_length=200)
+    category = models.ForeignKey(
+        ResourceCategory,
+        verbose_name="资源分类",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="resources",
+    )
+    description = models.TextField("资源说明", blank=True)
+    file = models.FileField("资源文件", upload_to="training_resources/%Y/%m/")
+    file_size = models.PositiveBigIntegerField("文件大小", default=0)
+    content_type = models.CharField("文件类型", max_length=120, blank=True)
+    version = models.CharField("版本", max_length=40, blank=True)
+    visibility = models.CharField("可见范围", max_length=20, choices=Visibility.choices, default=Visibility.ALL)
+    applicable_stage = models.CharField("适用阶段", max_length=10, blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="上传人",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="training_resources",
+    )
+    is_active = models.BooleanField("启用", default=True)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "-created_at"]
+        verbose_name = "培训资源"
+        verbose_name_plural = "培训资源"
+
+    def __str__(self):
+        return self.title
+
+
+class OperationAudit(models.Model):
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="操作人",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="operation_audits",
+    )
+    action = models.CharField("操作", max_length=80)
+    target_type = models.CharField("对象类型", max_length=80, blank=True)
+    target_id = models.CharField("对象ID", max_length=80, blank=True)
+    summary = models.CharField("摘要", max_length=240, blank=True)
+    metadata = models.JSONField("详情", default=dict, blank=True)
+    ip_address = models.GenericIPAddressField("IP地址", blank=True, null=True)
+    user_agent = models.TextField("浏览器/客户端", blank=True)
+    created_at = models.DateTimeField("操作时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "操作审计"
+        verbose_name_plural = "操作审计"
+
+    def __str__(self):
+        return f"{self.action} {self.summary}".strip()
+
+
+class SystemSetting(models.Model):
+    key = models.CharField("配置键", max_length=100, unique=True)
+    value = models.TextField("配置值", blank=True)
+    description = models.CharField("说明", max_length=200, blank=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        ordering = ["key"]
+        verbose_name = "系统配置"
+        verbose_name_plural = "系统配置"
+
+    def __str__(self):
+        return self.key

@@ -5,8 +5,12 @@ from .models import (
     ConductRule,
     Department,
     LoginAudit,
+    OperationAudit,
     PersonProfile,
+    ResourceCategory,
     StudentProfile,
+    SystemSetting,
+    TrainingResource,
 )
 
 
@@ -122,3 +126,55 @@ class LoginAuditAdmin(admin.ModelAdmin):
     search_fields = ("person__name", "person__employee_no", "ip_address", "message")
     readonly_fields = ("person", "provider", "ip_address", "user_agent", "success", "message", "created_at")
     ordering = ("-created_at",)
+
+
+@admin.register(ResourceCategory)
+class ResourceCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "parent", "sort_order", "is_active", "updated_at")
+    list_filter = ("is_active",)
+    search_fields = ("name",)
+    ordering = ("sort_order", "name")
+
+
+@admin.register(TrainingResource)
+class TrainingResourceAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "category",
+        "visibility",
+        "applicable_stage",
+        "version",
+        "file_size",
+        "uploaded_by",
+        "is_active",
+        "updated_at",
+    )
+    list_filter = ("visibility", "category", "applicable_stage", "is_active")
+    search_fields = ("title", "description", "version", "file")
+    autocomplete_fields = ("category", "uploaded_by")
+    readonly_fields = ("file_size", "content_type", "created_at", "updated_at")
+    ordering = ("-updated_at",)
+
+    def save_model(self, request, obj, form, change):
+        if obj.file:
+            obj.file_size = getattr(obj.file, "size", 0) or 0
+            obj.content_type = getattr(obj.file.file, "content_type", "") or obj.content_type
+        if not obj.uploaded_by:
+            obj.uploaded_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(OperationAudit)
+class OperationAuditAdmin(admin.ModelAdmin):
+    list_display = ("actor", "action", "target_type", "target_id", "summary", "ip_address", "created_at")
+    list_filter = ("action", "target_type", "created_at")
+    search_fields = ("actor__username", "summary", "target_type", "target_id")
+    readonly_fields = ("actor", "action", "target_type", "target_id", "summary", "metadata", "ip_address", "user_agent", "created_at")
+    ordering = ("-created_at",)
+
+
+@admin.register(SystemSetting)
+class SystemSettingAdmin(admin.ModelAdmin):
+    list_display = ("key", "description", "updated_at")
+    search_fields = ("key", "value", "description")
+    ordering = ("key",)

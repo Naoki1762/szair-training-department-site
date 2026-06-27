@@ -1,6 +1,8 @@
+from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 
-from .models import ConductRecord, ConductRule, Department, PersonProfile, StudentProfile
+from .models import ConductRecord, ConductRule, Department, PersonProfile, ResourceCategory, StudentProfile, TrainingResource
 
 
 class StudentApiTests(TestCase):
@@ -46,3 +48,78 @@ class ConductScoreTests(TestCase):
 
         student.refresh_from_db()
         self.assertEqual(student.current_score, 98)
+
+    def test_conduct_api_requires_permission_and_writes_record(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="manager", password="pass")
+        PersonProfile.objects.create(
+            user=user,
+            name="管理员",
+            employee_no="M10001",
+            role=PersonProfile.Role.MANAGER,
+            can_manage_conduct=True,
+            excluded_from_conduct_score=True,
+        )
+        person = PersonProfile.objects.create(
+            name="测试学员",
+            employee_no="A30003",
+            role=PersonProfile.Role.STUDENT,
+            position="飞行学员",
+        )
+        student = StudentProfile.objects.create(person=person, initial_score=100, current_score=100)
+        rule = ConductRule.objects.create(
+            rule_id="rule-api",
+            dimension="训练作风",
+            module="测试",
+            item="测试",
+            title="测试扣分",
+            values=[-2],
+        )
+
+        self.client.login(username="manager", password="pass")
+        response = self.client.post(
+            "/api/conduct/records",
+            data={"studentId": str(person.pk), "ruleId": rule.rule_id, "scoreDelta": -2, "reason": "测试"},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        student.refresh_from_db()
+        self.assertEqual(student.current_score, 98)
+
+
+class AuthApiTests(TestCase):
+    def test_local_login_returns_permissions(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="admin", password="shfx6688", is_staff=True)
+
+        response = self.client.post(
+            "/api/auth/login",
+            data={"username": "admin", "password": "shfx6688"},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertTrue(payload["authenticated"])
+        self.assertTrue(payload["permissions"]["managePeople"])
+        user.refresh_from_db()
+
+
+class ResourceApiTests(TestCase):
+    def test_resource_list_returns_active_public_resources(self):
+        category = ResourceCategory.objects.create(name="制度文件")
+        TrainingResource.objects.create(
+            title="测试资源",
+            category=category,
+            file=SimpleUploadedFile("test.txt", b"hello", content_type="text/plain"),
+            file_size=5,
+            content_type="text/plain",
+        )
+
+        response = self.client.get("/api/resources")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["categories"][0]["name"], "制度文件")
+        self.assertEqual(payload["resources"][0]["title"], "测试资源")

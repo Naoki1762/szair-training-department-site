@@ -2049,6 +2049,43 @@ function enterApp() {
   switchPage("dashboard");
 }
 
+function applyServerUser(user) {
+  if (!user?.authenticated) return false;
+  const person = user.person || {};
+  currentUser = {
+    name: person.name || user.username || "系统用户",
+    role: user.permissions?.managePeople ? "manager" : "student",
+    roleName: person.roleName || (user.isStaff ? "系统管理员" : "平台用户"),
+    permissions: user.permissions || {}
+  };
+  return true;
+}
+
+async function restoreServerSession() {
+  try {
+    const response = await fetch("/api/auth/me", { credentials: "same-origin" });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && applyServerUser(data)) enterApp();
+  } catch {
+    // 本地静态预览时允许继续使用演示登录。
+  }
+}
+
+async function submitServerLogin() {
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: qs("username").value.trim(),
+      password: qs("password").value
+    })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "登录失败");
+  applyServerUser(data);
+}
+
 function setupDingTalkLogin() {
   qs("dingtalkLogin").href = window.TRAINING_DINGTALK_LOGIN_URL || "/api/auth/dingtalk/start";
 
@@ -2410,7 +2447,7 @@ function renderConductEditor() {
   }
 }
 
-function saveConductAdjustment(event) {
+async function saveConductAdjustment(event) {
   event.preventDefault();
   if (!canManageConduct()) return;
   const studentId = selectedConductDetailId;
@@ -2421,6 +2458,34 @@ function saveConductAdjustment(event) {
   const value = Number(qs("conductRuleValue").value || rule.values[0]);
   const type = value > 0 ? "+" : "-";
   const reason = qs("conductReason").value.trim();
+  try {
+    const response = await fetch("/api/conduct/records", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        studentId,
+        ruleId: rule.id,
+        scoreDelta: value,
+        reason
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && data.student) {
+      students = students.map(student => student.userId === studentId ? data.student : student);
+      selectedConductDetailId = studentId;
+      qs("conductReason").value = "";
+      renderConductRuleValue();
+      renderConductScores();
+      renderConductPersonDetail();
+      renderConductEditor();
+      return;
+    }
+    throw new Error(data.error || `作风分接口返回 ${response.status}`);
+  } catch (error) {
+    alert(error.message || "作风分保存失败，请稍后重试。");
+    return;
+  }
   students = students.map(student => {
     if (student.userId !== studentId || student.conductRole === "admin") return student;
     const nextScore = Math.max(0, Number(student.conductScore || 100) + value);
@@ -2638,6 +2703,7 @@ renderRoleSelect();
 renderNav();
 renderCards();
 restoreDingTalkSession();
+restoreServerSession();
 applyRole();
 tick();
 setInterval(tick, 30000);
@@ -2700,15 +2766,29 @@ qs("role").addEventListener("change", () => {
   applyRole();
 });
 
-qs("loginForm").addEventListener("submit", (event) => {
+qs("loginForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   currentUser = null;
   sessionStorage.removeItem("trainingDingTalkSession");
   setLoginError("");
+  try {
+    await submitServerLogin();
+  } catch (error) {
+    const demoLogin = qs("username").value.trim() === "a01149" && qs("password").value === "password";
+    if (!demoLogin && (qs("username").value.trim() || qs("password").value)) {
+      setLoginError(error.message || "账号或密码不正确");
+      return;
+    }
+  }
   enterApp();
 });
 
-qs("logout").addEventListener("click", () => {
+qs("logout").addEventListener("click", async () => {
+  try {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
+  } catch {
+    // 离线静态预览时忽略退出接口失败。
+  }
   qs("app").classList.add("hidden");
   qs("loginPage").classList.remove("hidden");
   qs("qaLauncher").classList.add("hidden");

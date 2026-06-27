@@ -1,3 +1,124 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import (
+    ConductRecord,
+    ConductRule,
+    Department,
+    LoginAudit,
+    PersonProfile,
+    StudentProfile,
+)
+
+
+admin.site.site_header = "深圳航空培训部管理后台"
+admin.site.site_title = "培训部管理后台"
+admin.site.index_title = "后台管理"
+
+
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = ("name", "parent", "ding_department_id", "sort_order", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("name", "ding_department_id")
+    ordering = ("sort_order", "name")
+
+
+class StudentProfileInline(admin.StackedInline):
+    model = StudentProfile
+    extra = 0
+    fields = ("stage", "class_name", "entry_date", "initial_score", "current_score", "note")
+    readonly_fields = ("current_score",)
+
+
+@admin.register(PersonProfile)
+class PersonProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "employee_no",
+        "role",
+        "department",
+        "position",
+        "is_active",
+        "can_manage_conduct",
+        "excluded_from_conduct_score",
+    )
+    list_filter = ("role", "department", "is_active", "can_manage_conduct", "excluded_from_conduct_score")
+    search_fields = ("name", "employee_no", "mobile", "ding_user_id", "ding_union_id")
+    autocomplete_fields = ("user", "department")
+    inlines = (StudentProfileInline,)
+    ordering = ("department__sort_order", "employee_no")
+
+
+class ConductRecordInline(admin.TabularInline):
+    model = ConductRecord
+    extra = 0
+    autocomplete_fields = ("rule", "recorded_by")
+    fields = ("occurred_on", "rule", "score_delta", "reason", "recorded_by")
+    readonly_fields = ()
+
+
+@admin.register(StudentProfile)
+class StudentProfileAdmin(admin.ModelAdmin):
+    list_display = (
+        "person_name",
+        "employee_no",
+        "stage",
+        "class_name",
+        "current_score",
+        "department",
+        "updated_at",
+    )
+    list_filter = ("stage", "person__department", "person__is_active")
+    search_fields = ("person__name", "person__employee_no", "class_name")
+    autocomplete_fields = ("person",)
+    readonly_fields = ("current_score", "created_at", "updated_at")
+    inlines = (ConductRecordInline,)
+    actions = ("recalculate_scores",)
+    ordering = ("stage", "person__employee_no")
+
+    @admin.display(description="姓名", ordering="person__name")
+    def person_name(self, obj):
+        return obj.person.name
+
+    @admin.display(description="工号", ordering="person__employee_no")
+    def employee_no(self, obj):
+        return obj.person.employee_no
+
+    @admin.display(description="科室", ordering="person__department")
+    def department(self, obj):
+        return obj.person.department
+
+    @admin.action(description="重新计算所选学员作风分")
+    def recalculate_scores(self, request, queryset):
+        count = 0
+        for student in queryset:
+            student.recalculate_score()
+            count += 1
+        self.message_user(request, f"已重新计算 {count} 名学员作风分。")
+
+
+@admin.register(ConductRule)
+class ConductRuleAdmin(admin.ModelAdmin):
+    list_display = ("rule_id", "dimension", "module", "title", "values", "source", "is_active")
+    list_filter = ("dimension", "module", "is_active")
+    search_fields = ("rule_id", "dimension", "module", "item", "title", "source")
+    ordering = ("rule_id",)
+
+
+@admin.register(ConductRecord)
+class ConductRecordAdmin(admin.ModelAdmin):
+    list_display = ("student", "rule", "score_delta", "occurred_on", "recorded_by", "created_at")
+    list_filter = ("occurred_on", "rule__dimension", "rule__module")
+    search_fields = ("student__person__name", "student__person__employee_no", "rule__title", "reason")
+    autocomplete_fields = ("student", "rule", "recorded_by")
+    date_hierarchy = "occurred_on"
+    ordering = ("-occurred_on", "-created_at")
+
+
+@admin.register(LoginAudit)
+class LoginAuditAdmin(admin.ModelAdmin):
+    list_display = ("person", "provider", "success", "ip_address", "message", "created_at")
+    list_filter = ("provider", "success", "created_at")
+    search_fields = ("person__name", "person__employee_no", "ip_address", "message")
+    readonly_fields = ("person", "provider", "ip_address", "user_agent", "success", "message", "created_at")
+    ordering = ("-created_at",)

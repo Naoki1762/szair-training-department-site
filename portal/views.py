@@ -2,10 +2,13 @@ import json
 import os
 from urllib.parse import urlencode
 
+from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_safe
+
+from .models import ConductRecord, StudentProfile
 
 
 DEMO_KNOWLEDGE = [
@@ -68,12 +71,31 @@ def ask_question(request):
 
 @require_GET
 def students(request):
+    queryset = (
+        StudentProfile.objects.select_related("person", "person__department")
+        .prefetch_related(
+            Prefetch("conduct_records", queryset=ConductRecord.objects.select_related("rule", "recorded_by"))
+        )
+        .order_by("stage", "person__employee_no")
+    )
+    students_data = [serialize_student(student) for student in queryset]
+    if students_data:
+        return JsonResponse(
+            {
+                "departmentName": "飞行学员管理室",
+                "syncedAt": None,
+                "source": "django-database",
+                "students": students_data,
+            }
+        )
+
     return JsonResponse(
         {
-            "error": "Django 学员同步接口尚未配置钉钉凭证。",
-            "code": "STUDENT_SYNC_NOT_CONFIGURED",
+            "departmentName": "飞行学员管理室",
+            "syncedAt": None,
+            "source": "django-database",
+            "students": [],
         },
-        status=503,
     )
 
 
@@ -92,4 +114,36 @@ def dingtalk_callback(request):
     suffix = f"?{params}" if params else ""
     return redirect(f"/{suffix}")
 
-# Create your views here.
+
+def serialize_student(student):
+    person = student.person
+    records = [serialize_conduct_record(record) for record in student.conduct_records.all()[:20]]
+    return {
+        "userId": person.ding_user_id or str(person.pk),
+        "name": person.name,
+        "title": person.position or person.get_role_display(),
+        "jobNumber": person.employee_no,
+        "active": person.is_active,
+        "avatar": "",
+        "department": person.department.name if person.department else "",
+        "conductRole": "admin" if person.excluded_from_conduct_score else "student",
+        "conductStage": "" if person.excluded_from_conduct_score else student.stage,
+        "conductScore": None if person.excluded_from_conduct_score else student.current_score,
+        "conductRecords": records,
+    }
+
+
+def serialize_conduct_record(record):
+    value = int(record.score_delta)
+    return {
+        "type": "+" if value > 0 else "-",
+        "value": abs(value),
+        "reason": record.reason,
+        "ruleId": record.rule.rule_id if record.rule else "",
+        "ruleTitle": record.rule.title if record.rule else "手工调整",
+        "dimension": record.rule.dimension if record.rule else "手工调整",
+        "module": record.rule.module if record.rule else "",
+        "source": record.rule.source if record.rule else "",
+        "operator": record.recorded_by.get_username() if record.recorded_by else "后台管理员",
+        "time": record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+    }

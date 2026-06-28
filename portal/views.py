@@ -11,6 +11,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_safe
 
+from .conduct_agent import ConductBehaviorAgent
 from .models import ConductRecord, ConductRule, LoginAudit, PersonProfile, ResourceCategory, StudentProfile, TrainingResource
 from .services import audit, can_manage_conduct, can_manage_people, can_manage_resources, get_client_ip, get_person_for_user, get_user_agent
 
@@ -206,14 +207,21 @@ def match_conduct_rule(request):
     if len(behavior) < 4:
         return JsonResponse({"error": "请先填写更完整的行为描述"}, status=400)
 
-    suggestions = suggest_conduct_rules(behavior)
+    agent_result = ConductBehaviorAgent().suggest(
+        behavior,
+        ConductRule.objects.filter(is_active=True),
+    )
     audit(
         request,
         "conduct.match",
         summary=f"智能匹配作风规则：{behavior[:40]}",
-        metadata={"behavior": behavior, "matches": [item["rule"]["id"] for item in suggestions]},
+        metadata={
+            "behavior": behavior,
+            "agent": agent_result["analysis"],
+            "matches": [item["rule"]["id"] for item in agent_result["matches"]],
+        },
     )
-    return JsonResponse({"matches": suggestions})
+    return JsonResponse(agent_result)
 
 
 @csrf_exempt
@@ -459,91 +467,6 @@ def serialize_conduct_record(record):
         "operator": record.recorded_by.get_username() if record.recorded_by else "后台管理员",
         "time": record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
     }
-
-
-def suggest_conduct_rules(behavior, limit=5):
-    normalized_behavior = normalize_match_text(behavior)
-    behavior_tokens = set(extract_match_tokens(normalized_behavior))
-    behavior_polarity = detect_behavior_polarity(normalized_behavior)
-    results = []
-    for rule in ConductRule.objects.filter(is_active=True):
-        haystack = normalize_match_text(" ".join([rule.dimension, rule.module, rule.item, rule.title, rule.source]))
-        rule_tokens = set(extract_match_tokens(haystack))
-        overlap = behavior_tokens & rule_tokens
-        rule_polarity = get_rule_polarity(rule)
-        direct_bonus = 0
-        for field in [rule.item, rule.title, rule.module, rule.source]:
-            normalized_field = normalize_match_text(field)
-            if normalized_field and (normalized_field in normalized_behavior or normalized_behavior in normalized_field):
-                direct_bonus += 12
-
-        score = len(overlap) * 4 + direct_bonus
-        score += len(set(normalized_behavior) & set(haystack))
-        if behavior_polarity == "positive":
-            score += 26 if rule_polarity == "positive" else -18
-        elif behavior_polarity == "negative":
-            score += 26 if rule_polarity == "negative" else -12
-        elif behavior_polarity == "mixed" and rule_polarity == "mixed":
-            score += 8
-        if score <= 0:
-            continue
-
-        confidence = min(98, max(35, score * 3))
-        reason_words = sorted(overlap, key=len, reverse=True)[:4]
-        reason = "匹配到关键词：" + "、".join(reason_words) if reason_words else "行为描述与规则文本相近"
-        results.append(
-            {
-                "score": score,
-                "confidence": confidence,
-                "reason": reason,
-                "rule": serialize_conduct_rule(rule),
-            }
-        )
-
-    results.sort(key=lambda item: (item["score"], item["confidence"]), reverse=True)
-    return [
-        {
-            "confidence": item["confidence"],
-            "reason": item["reason"],
-            "rule": item["rule"],
-        }
-        for item in results[:limit]
-    ]
-
-
-def get_rule_polarity(rule):
-    values = [int(value) for value in rule.values]
-    has_positive = any(value > 0 for value in values)
-    has_negative = any(value < 0 for value in values)
-    if has_positive and has_negative:
-        return "mixed"
-    if has_positive:
-        return "positive"
-    if has_negative:
-        return "negative"
-    return "neutral"
-
-
-def detect_behavior_polarity(normalized_behavior):
-    positive_keywords = [
-        "帮助", "协助", "支援", "支持", "参与", "承担", "完成", "贡献", "优秀", "主动",
-        "拍摄", "摄影", "宣传", "新闻", "稿件", "文章", "媒体", "报道", "入列", "仪式",
-        "活动", "公司级", "部门级", "科室建设", "表彰", "获奖", "创新", "开发", "制作",
-    ]
-    negative_keywords = [
-        "未", "没有", "迟到", "早退", "旷", "缺席", "违反", "违规", "违纪", "不合格",
-        "擅自", "拒绝", "瞒报", "漏报", "离开", "未请假", "作弊", "冲突", "投诉", "损坏",
-        "防疫", "口罩", "酒", "打架", "不服从",
-    ]
-    positive_score = sum(1 for keyword in positive_keywords if keyword in normalized_behavior)
-    negative_score = sum(1 for keyword in negative_keywords if keyword in normalized_behavior)
-    if positive_score and negative_score:
-        return "positive" if positive_score >= negative_score + 2 else "negative" if negative_score >= positive_score + 2 else "mixed"
-    if positive_score:
-        return "positive"
-    if negative_score:
-        return "negative"
-    return "neutral"
 
 
 def build_conduct_rule_from_payload(payload, instance=None):

@@ -811,6 +811,21 @@ a { color: inherit; }
   font-size: 12px;
   line-height: 1.5;
 }
+.conduct-agent-summary {
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #f8fbff;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.conduct-agent-summary strong {
+  color: var(--text);
+  font-size: 13px;
+}
 .conduct-rule-tools {
   display: grid;
   gap: 12px;
@@ -1683,6 +1698,7 @@ a { color: inherit; }
                   <button class="btn" id="conductMatchButton" type="button">智能匹配</button>
                   <span class="pill" id="conductMatchStatus">等待描述</span>
                 </div>
+                <div class="conduct-agent-summary hidden" id="conductAgentSummary"></div>
                 <div class="conduct-match-results" id="conductMatchResults"></div>
                 <label><span>制度项目</span><select id="conductRuleSelect"></select></label>
                 <label><span>分值</span><select id="conductRuleValue"></select></label>
@@ -2615,6 +2631,31 @@ function renderConductMatchResults(matches = []) {
   }).join("");
 }
 
+function renderConductAgentSummary(agent = null) {
+  const container = qs("conductAgentSummary");
+  if (!agent) {
+    container.classList.add("hidden");
+    container.innerHTML = "";
+    return;
+  }
+  const polarityMap = {
+    positive: "正向贡献",
+    negative: "负向违纪",
+    mixed: "需复核",
+    neutral: "未明确"
+  };
+  const signals = [
+    ...(agent.positiveSignals || []),
+    ...(agent.negativeSignals || [])
+  ].slice(0, 8);
+  container.classList.remove("hidden");
+  container.innerHTML = `
+    <strong>${escapeHtml(agent.agent || "作风分识别 Agent")}：${escapeHtml(polarityMap[agent.polarity] || agent.polarity || "未明确")}</strong>
+    <span>${escapeHtml(agent.action || "已完成行为识别")}${agent.domains?.length ? `；场景：${escapeHtml(agent.domains.join("、"))}` : ""}</span>
+    ${signals.length ? `<span>识别信号：${escapeHtml(signals.join("、"))}</span>` : ""}
+  `;
+}
+
 async function matchConductRule() {
   if (!canManageConduct()) return;
   await loadConductRules();
@@ -2622,6 +2663,7 @@ async function matchConductRule() {
   if (behavior.length < 4) {
     qs("conductMatchStatus").textContent = "描述过短";
     qs("conductMatchStatus").className = "pill orange";
+    renderConductAgentSummary();
     renderConductMatchResults();
     return;
   }
@@ -2638,6 +2680,7 @@ async function matchConductRule() {
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || `匹配接口返回 ${response.status}`);
     const matches = Array.isArray(data.matches) ? data.matches : [];
+    renderConductAgentSummary(data.analysis || null);
     renderConductMatchResults(matches);
     if (matches[0]?.rule?.id) {
       applyConductRuleMatch(matches[0].rule.id);
@@ -2776,6 +2819,7 @@ async function saveConductAdjustment(event) {
       qs("conductReason").value = "";
       qs("conductMatchStatus").textContent = "等待描述";
       qs("conductMatchStatus").className = "pill";
+      renderConductAgentSummary();
       renderConductMatchResults();
       renderConductRuleValue();
       renderConductScores();

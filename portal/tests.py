@@ -182,6 +182,7 @@ class ConductScoreTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
+        self.assertEqual(payload["analysis"]["polarity"], "positive")
         self.assertEqual(payload["matches"][0]["rule"]["id"], positive_rule.rule_id)
         self.assertGreater(payload["matches"][0]["rule"]["values"][0], 0)
 

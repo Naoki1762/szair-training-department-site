@@ -2393,6 +2393,21 @@ function canManageConduct() {
   return ["manager", "department_admin", "admin", "培训部管理人员", "部门行政人员", "行政人员"].includes(roleId);
 }
 
+function normalizeFallbackConductRules() {
+  const fallbackRules = Array.isArray(window.CONDUCT_SCORE_RULES) ? window.CONDUCT_SCORE_RULES : [];
+  if (!fallbackRules.length) return [];
+  return fallbackRules.map((rule, index) => ({
+    id: rule.id || `rule-${String(index + 1).padStart(3, "0")}`,
+    dimension: rule.dimension || "作风量化",
+    module: rule.module || "制度项目",
+    item: rule.item || "",
+    title: rule.title || "",
+    values: Array.isArray(rule.values) ? rule.values : [],
+    source: rule.source || "",
+    isActive: rule.isActive !== false
+  })).filter(rule => rule.title && rule.values.length && rule.isActive);
+}
+
 async function loadConductRules(force = false) {
   if (conductRulesLoaded && !force) return;
   try {
@@ -2404,11 +2419,18 @@ async function loadConductRules(force = false) {
       conductRulesLoaded = true;
       if (qs("conductRuleSelect")) renderConductRuleSelect();
       renderConductRuleManager();
+      return;
     }
   } catch {
-    conductRulesLoaded = Boolean(conductScoreRules.length);
-    renderConductRuleManager();
+    // 继续走本地规则兜底。
   }
+  const fallbackRules = normalizeFallbackConductRules();
+  if (fallbackRules.length) {
+    conductScoreRules = fallbackRules;
+    conductRulesLoaded = true;
+    if (qs("conductRuleSelect")) renderConductRuleSelect();
+  }
+  renderConductRuleManager();
 }
 
 function getRuleValueType(values = []) {
@@ -2611,9 +2633,16 @@ function formatSignedScore(value) {
 
 function renderConductRuleSelect() {
   if (!conductScoreRules.length) {
-    qs("conductRuleSelect").innerHTML = `<option value="">暂无可用制度项目</option>`;
-    qs("conductRuleValue").innerHTML = "";
-    return;
+    const fallbackRules = normalizeFallbackConductRules();
+    if (fallbackRules.length) {
+      conductScoreRules = fallbackRules;
+      conductRulesLoaded = true;
+    } else {
+      qs("conductRuleSelect").innerHTML = `<option value="">制度项目加载中</option>`;
+      qs("conductRuleValue").innerHTML = "";
+      loadConductRules(true);
+      return;
+    }
   }
   const currentRuleId = qs("conductRuleSelect").value || conductScoreRules[0].id;
   const groups = [...new Set(conductScoreRules.map(rule => `${rule.dimension}｜${rule.module}`))];
@@ -2799,7 +2828,10 @@ function renderConductEditor() {
   qs("conductForm").classList.toggle("hidden", !canEditThisStudent);
   qs("conductEditStatus").textContent = canEditThisStudent ? "可调整" : "只读";
   qs("conductEditStatus").className = `pill${canEditThisStudent ? " green" : ""}`;
-  if (canEditThisStudent) renderConductRuleSelect();
+  if (canEditThisStudent) {
+    renderConductRuleSelect();
+    if (!conductRulesLoaded) loadConductRules(true);
+  }
   if (!editable) {
     qs("conductReadonly").querySelector("span").textContent = "管理员可在此主页对当前学员作风分进行加减分管理。";
   } else if (student?.conductRole === "admin") {

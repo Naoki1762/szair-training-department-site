@@ -145,6 +145,49 @@ class ConductScoreTests(TestCase):
         payload = response.json()
         self.assertEqual(payload["matches"][0]["rule"]["id"], rule.rule_id)
 
+    def test_conduct_rule_can_be_created_updated_and_deactivated(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="rule-manager", password="pass")
+        PersonProfile.objects.create(
+            user=user,
+            name="规则管理员",
+            employee_no="M10003",
+            role=PersonProfile.Role.MANAGER,
+            can_manage_conduct=True,
+            excluded_from_conduct_score=True,
+        )
+
+        self.client.login(username="rule-manager", password="pass")
+        create_response = self.client.post(
+            "/api/conduct/rules",
+            data={
+                "title": "帮助同学改进训练作风",
+                "dimension": "训练作风",
+                "module": "科室补充",
+                "item": "主动帮带",
+                "values": [2, 4],
+                "source": "科室记录",
+            },
+            content_type="application/json",
+        )
+
+        self.assertEqual(create_response.status_code, 201)
+        rule_id = create_response.json()["rule"]["id"]
+
+        update_response = self.client.patch(
+            f"/api/conduct/rules/{rule_id}",
+            data={"title": "主动帮助同学改进训练作风", "values": "2,4,8"},
+            content_type="application/json",
+        )
+
+        self.assertEqual(update_response.status_code, 200)
+        self.assertEqual(update_response.json()["rule"]["values"], [2, 4, 8])
+
+        delete_response = self.client.delete(f"/api/conduct/rules/{rule_id}")
+
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertFalse(ConductRule.objects.get(rule_id=rule_id).is_active)
+
 
 class AuthApiTests(TestCase):
     def test_local_login_returns_permissions(self):

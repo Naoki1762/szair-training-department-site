@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/students", views.students, name="students"),
     path("api/conduct/rules", views.conduct_rules, name="conduct_rules"),
     path("api/conduct/rules/match", views.match_conduct_rule, name="match_conduct_rule"),
+    path("api/conduct/rules/<str:rule_id>", views.conduct_rule_detail, name="conduct_rule_detail"),
     path("api/conduct/records", views.create_conduct_record, name="create_conduct_record"),
     path("api/resources", views.resources, name="resources"),
     path("api/resources/upload", views.upload_resource, name="upload_resource"),

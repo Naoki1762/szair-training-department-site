@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import uuid
 from urllib.parse import urlencode
 
 from django.contrib.auth import authenticate, login, logout
@@ -136,10 +137,58 @@ def students(request):
     )
 
 
-@require_GET
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
 def conduct_rules(request):
+    if request.method == "POST":
+        if not can_manage_conduct(request.user):
+            return JsonResponse({"error": "没有作风分管理权限"}, status=403)
+        try:
+            payload = json.loads(request.body.decode("utf-8") or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "请求体不是有效 JSON"}, status=400)
+
+        rule, error = build_conduct_rule_from_payload(payload)
+        if error:
+            return JsonResponse({"error": error}, status=400)
+        rule.rule_id = str(payload.get("id", "")).strip() or f"custom-{uuid.uuid4().hex[:12]}"
+        if ConductRule.objects.filter(rule_id=rule.rule_id).exists():
+            return JsonResponse({"error": "规则编号已存在"}, status=400)
+        rule.save()
+        audit(request, "conduct.rule.create", target=rule, summary=rule.title)
+        return JsonResponse({"ok": True, "rule": serialize_conduct_rule(rule)}, status=201)
+
     rules = ConductRule.objects.filter(is_active=True).order_by("dimension", "module", "rule_id")
     return JsonResponse({"rules": [serialize_conduct_rule(rule) for rule in rules]})
+
+
+@csrf_exempt
+@require_http_methods(["PATCH", "DELETE"])
+def conduct_rule_detail(request, rule_id):
+    if not can_manage_conduct(request.user):
+        return JsonResponse({"error": "没有作风分管理权限"}, status=403)
+
+    rule = ConductRule.objects.filter(rule_id=rule_id).first()
+    if not rule:
+        return JsonResponse({"error": "未找到制度项目"}, status=404)
+
+    if request.method == "DELETE":
+        rule.is_active = False
+        rule.save(update_fields=["is_active", "updated_at"])
+        audit(request, "conduct.rule.deactivate", target=rule, summary=rule.title)
+        return JsonResponse({"ok": True, "rule": serialize_conduct_rule(rule)})
+
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "请求体不是有效 JSON"}, status=400)
+
+    next_rule, error = build_conduct_rule_from_payload(payload, instance=rule)
+    if error:
+        return JsonResponse({"error": error}, status=400)
+    next_rule.save()
+    audit(request, "conduct.rule.update", target=next_rule, summary=next_rule.title)
+    return JsonResponse({"ok": True, "rule": serialize_conduct_rule(next_rule)})
 
 
 @csrf_exempt
@@ -392,6 +441,7 @@ def serialize_conduct_rule(rule):
         "title": rule.title,
         "values": [int(value) for value in rule.values],
         "source": rule.source,
+        "isActive": rule.is_active,
     }
 
 
@@ -451,6 +501,40 @@ def suggest_conduct_rules(behavior, limit=5):
         }
         for item in results[:limit]
     ]
+
+
+def build_conduct_rule_from_payload(payload, instance=None):
+    rule = instance or ConductRule()
+    values = payload.get("values", rule.values if instance else [])
+    if isinstance(values, str):
+        values = [value.strip() for value in re.split(r"[,，/、\s]+", values) if value.strip()]
+    try:
+        values = [int(value) for value in values]
+    except (TypeError, ValueError):
+        return rule, "分值必须是数字，可填写多个，例如 -2,-4 或 2,4"
+    values = list(dict.fromkeys(values))
+    if not values:
+        return rule, "请至少填写一个加减分值"
+    if 0 in values:
+        return rule, "分值不能为 0"
+
+    fields = {
+        "dimension": str(payload.get("dimension", rule.dimension if instance else "")).strip() or "自定义规则",
+        "module": str(payload.get("module", rule.module if instance else "")).strip() or "科室补充",
+        "item": str(payload.get("item", rule.item if instance else "")).strip(),
+        "title": str(payload.get("title", rule.title if instance else "")).strip(),
+        "source": str(payload.get("source", rule.source if instance else "")).strip(),
+    }
+    if not fields["title"]:
+        return rule, "请填写制度项目"
+    if not fields["item"]:
+        fields["item"] = fields["title"]
+
+    for field, value in fields.items():
+        setattr(rule, field, value)
+    rule.values = values
+    rule.is_active = bool(payload.get("isActive", rule.is_active if instance else True))
+    return rule, ""
 
 
 def normalize_match_text(value):

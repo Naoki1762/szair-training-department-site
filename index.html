@@ -33,6 +33,7 @@ button, input, select { font: inherit; }
 button { cursor: pointer; }
 img { display: block; max-width: 100%; }
 a { color: inherit; }
+.muted { color: var(--muted); }
 .hidden { display: none !important; }
 
 .login {
@@ -810,6 +811,41 @@ a { color: inherit; }
   font-size: 12px;
   line-height: 1.5;
 }
+.conduct-rule-tools {
+  display: grid;
+  gap: 12px;
+}
+.conduct-rule-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.conduct-rule-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+.conduct-rule-form label.full {
+  grid-column: 1 / -1;
+}
+.conduct-rule-form input,
+.conduct-rule-form select {
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: 0;
+  background: white;
+  color: var(--text);
+}
+.conduct-rule-table-wrap {
+  overflow-x: auto;
+}
+.conduct-rule-table-wrap .table {
+  min-width: 760px;
+}
 .score-side {
   display: grid;
   gap: 18px;
@@ -1353,6 +1389,7 @@ a { color: inherit; }
   .score-controls select,
   .score-controls input,
   .score-controls .btn { width: 100%; }
+  .conduct-rule-form { grid-template-columns: 1fr; }
   .person-detail-grid { grid-template-columns: 1fr; }
   .qa-launcher {
     right: 14px;
@@ -1582,6 +1619,37 @@ a { color: inherit; }
               </div>
             </div>
           </div>
+
+          <div class="card" id="conductRuleManagerCard">
+            <div class="card-head"><h3>作风分项目管理</h3><span class="pill" id="conductRuleManagerStatus">仅管理员</span></div>
+            <div class="card-body">
+              <div class="score-readonly hidden" id="conductRuleManagerReadonly">
+                <strong>当前身份仅可查看</strong>
+                <span>作风分项目由管理员维护。</span>
+              </div>
+              <div class="conduct-rule-tools" id="conductRuleManager">
+                <form class="conduct-rule-form" id="conductRuleForm">
+                  <input id="conductRuleEditingId" type="hidden">
+                  <label><span>制度项目</span><input id="conductRuleTitleInput" placeholder="例如：训练迟到、早退"></label>
+                  <label><span>分值</span><input id="conductRuleValuesInput" placeholder="例如：-2 或 2,4"></label>
+                  <label><span>维度</span><input id="conductRuleDimensionInput" placeholder="例如：训练作风"></label>
+                  <label><span>模块</span><input id="conductRuleModuleInput" placeholder="例如：课堂纪律"></label>
+                  <label><span>条目</span><input id="conductRuleItemInput" placeholder="可与制度项目一致"></label>
+                  <label><span>信息来源</span><input id="conductRuleSourceInput" placeholder="例如：教员反馈、检查记录"></label>
+                  <div class="score-actions">
+                    <button class="btn primary" type="submit">保存项目</button>
+                    <button class="btn" id="conductRuleResetButton" type="button">新建</button>
+                  </div>
+                </form>
+                <div class="conduct-rule-table-wrap">
+                  <table class="table">
+                    <thead><tr><th>制度项目</th><th>分值</th><th>维度/模块</th><th>来源</th><th>操作</th></tr></thead>
+                    <tbody id="conductRuleTable"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1618,6 +1686,7 @@ a { color: inherit; }
                 <div class="conduct-match-results" id="conductMatchResults"></div>
                 <label><span>制度项目</span><select id="conductRuleSelect"></select></label>
                 <label><span>分值</span><select id="conductRuleValue"></select></label>
+                <span class="pill" id="conductRuleTypeStatus">等待选择</span>
                 <label><span>补充说明</span><textarea id="conductReason" placeholder="可补充事实经过、信息来源或审批说明"></textarea></label>
                 <button class="btn primary" type="submit">保存调整</button>
               </form>
@@ -2033,6 +2102,7 @@ function switchPage(id) {
       return;
     }
     renderConductScores();
+    renderConductRuleManager();
   }
   if (id === "studentProfile") {
     renderConductPersonDetail();
@@ -2295,9 +2365,106 @@ async function loadConductRules(force = false) {
       conductScoreRules = data.rules;
       conductRulesLoaded = true;
       if (qs("conductRuleSelect")) renderConductRuleSelect();
+      renderConductRuleManager();
     }
   } catch {
     conductRulesLoaded = Boolean(conductScoreRules.length);
+    renderConductRuleManager();
+  }
+}
+
+function getRuleValueType(values = []) {
+  const hasPositive = values.some(value => Number(value) > 0);
+  const hasNegative = values.some(value => Number(value) < 0);
+  if (hasPositive && hasNegative) return "加分/扣分";
+  if (hasPositive) return "加分";
+  if (hasNegative) return "扣分";
+  return "调整";
+}
+
+function renderConductRuleManager() {
+  if (!qs("conductRuleManager")) return;
+  const editable = canManageConduct();
+  qs("conductRuleManagerReadonly").classList.toggle("hidden", editable);
+  qs("conductRuleManager").classList.toggle("hidden", !editable);
+  qs("conductRuleManagerStatus").textContent = editable ? `${conductScoreRules.length} 项` : "仅管理员";
+  qs("conductRuleManagerStatus").className = `pill${editable ? " green" : ""}`;
+  if (!editable) return;
+  const rules = [...conductScoreRules].sort((left, right) => {
+    const leftType = getRuleValueType(left.values) === "扣分" ? 0 : 1;
+    const rightType = getRuleValueType(right.values) === "扣分" ? 0 : 1;
+    if (leftType !== rightType) return leftType - rightType;
+    return String(left.id || "").localeCompare(String(right.id || ""), "zh-CN", { numeric: true });
+  }).slice(0, 80);
+  qs("conductRuleTable").innerHTML = rules.map(rule => {
+    const values = rule.values.map(formatSignedScore).join(" / ");
+    const valueType = getRuleValueType(rule.values);
+    return `<tr>
+      <td><strong>${escapeHtml(rule.title)}</strong><br><span class="muted">${escapeHtml(rule.item || rule.id)}</span></td>
+      <td><span class="pill ${valueType === "加分" ? "green" : valueType === "扣分" ? "red" : "orange"}">${escapeHtml(valueType)}</span><br>${escapeHtml(values)}</td>
+      <td>${escapeHtml(rule.dimension || "--")}<br><span class="muted">${escapeHtml(rule.module || "--")}</span></td>
+      <td>${escapeHtml(rule.source || "--")}</td>
+      <td><div class="score-actions"><button class="btn" type="button" data-rule-edit="${escapeHtml(rule.id)}">修改</button><button class="btn" type="button" data-rule-delete="${escapeHtml(rule.id)}">停用</button></div></td>
+    </tr>`;
+  }).join("");
+}
+
+function resetConductRuleForm(rule = null) {
+  qs("conductRuleEditingId").value = rule?.id || "";
+  qs("conductRuleTitleInput").value = rule?.title || "";
+  qs("conductRuleValuesInput").value = Array.isArray(rule?.values) ? rule.values.join(",") : "";
+  qs("conductRuleDimensionInput").value = rule?.dimension || "训练作风";
+  qs("conductRuleModuleInput").value = rule?.module || "科室补充";
+  qs("conductRuleItemInput").value = rule?.item || "";
+  qs("conductRuleSourceInput").value = rule?.source || "";
+}
+
+async function saveConductRule(event) {
+  event.preventDefault();
+  if (!canManageConduct()) return;
+  const editingId = qs("conductRuleEditingId").value.trim();
+  const payload = {
+    title: qs("conductRuleTitleInput").value.trim(),
+    values: qs("conductRuleValuesInput").value.trim(),
+    dimension: qs("conductRuleDimensionInput").value.trim(),
+    module: qs("conductRuleModuleInput").value.trim(),
+    item: qs("conductRuleItemInput").value.trim(),
+    source: qs("conductRuleSourceInput").value.trim(),
+    isActive: true
+  };
+  try {
+    const response = await fetch(editingId ? `/api/conduct/rules/${encodeURIComponent(editingId)}` : "/api/conduct/rules", {
+      method: editingId ? "PATCH" : "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `规则保存失败 ${response.status}`);
+    resetConductRuleForm();
+    conductRulesLoaded = false;
+    await loadConductRules(true);
+  } catch (error) {
+    alert(error.message || "作风分项目保存失败，请稍后重试。");
+  }
+}
+
+async function deactivateConductRule(ruleId) {
+  if (!canManageConduct() || !ruleId) return;
+  const rule = getConductRule(ruleId);
+  if (!window.confirm(`确认停用“${rule?.title || ruleId}”？历史记录会保留。`)) return;
+  try {
+    const response = await fetch(`/api/conduct/rules/${encodeURIComponent(ruleId)}`, {
+      method: "DELETE",
+      credentials: "same-origin"
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `规则停用失败 ${response.status}`);
+    if (qs("conductRuleEditingId").value === ruleId) resetConductRuleForm();
+    conductRulesLoaded = false;
+    await loadConductRules(true);
+  } catch (error) {
+    alert(error.message || "作风分项目停用失败，请稍后重试。");
   }
 }
 
@@ -2380,6 +2547,7 @@ function renderConductScores() {
     </tr>`;
   }).join("");
   qs("conductEmptyState").classList.toggle("hidden", rows.length > 0);
+  renderConductRuleManager();
 }
 
 function getConductScoreStatus(score) {
@@ -2434,9 +2602,10 @@ function renderConductMatchResults(matches = []) {
   container.innerHTML = matches.map(match => {
     const rule = match.rule;
     const values = rule.values.map(formatSignedScore).join(" / ");
+    const valueType = getRuleValueType(rule.values);
     return `
       <button class="conduct-match-option" type="button" data-match-rule="${escapeHtml(rule.id)}">
-        <strong>${escapeHtml(values)}｜${escapeHtml(rule.title)}</strong>
+        <strong>${escapeHtml(valueType)}｜${escapeHtml(values)}｜${escapeHtml(rule.title)}</strong>
         <span>${escapeHtml(match.confidence)}% · ${escapeHtml(match.reason)} · ${escapeHtml(rule.dimension)} / ${escapeHtml(rule.module)}</span>
       </button>
     `;
@@ -2495,6 +2664,8 @@ function renderConductRuleValue() {
   const rule = getConductRule(qs("conductRuleSelect").value);
   if (!rule) {
     qs("conductRuleValue").innerHTML = "";
+    qs("conductRuleTypeStatus").textContent = "等待选择";
+    qs("conductRuleTypeStatus").className = "pill";
     return;
   }
   const currentValue = qs("conductRuleValue").value;
@@ -2504,6 +2675,9 @@ function renderConductRuleValue() {
   if (rule.values.map(String).includes(currentValue)) {
     qs("conductRuleValue").value = currentValue;
   }
+  const valueType = getRuleValueType(rule.values);
+  qs("conductRuleTypeStatus").textContent = valueType;
+  qs("conductRuleTypeStatus").className = `pill ${valueType === "加分" ? "green" : valueType === "扣分" ? "red" : "orange"}`;
   qs("conductReason").placeholder = `${rule.title}${rule.source ? `；渠道：${rule.source}` : ""}`;
 }
 
@@ -2849,6 +3023,17 @@ document.body.addEventListener("click", (event) => {
     qs("conductMatchStatus").className = "pill green";
     return;
   }
+  const editRule = event.target.closest("[data-rule-edit]");
+  if (editRule) {
+    const rule = getConductRule(editRule.dataset.ruleEdit || "");
+    if (rule) resetConductRuleForm(rule);
+    return;
+  }
+  const deleteRule = event.target.closest("[data-rule-delete]");
+  if (deleteRule) {
+    deactivateConductRule(deleteRule.dataset.ruleDelete || "");
+    return;
+  }
   const go = event.target.closest("[data-go]");
   if (go) switchPage(go.dataset.go);
   const carousel = event.target.closest("[data-carousel]");
@@ -2894,9 +3079,12 @@ qs("conductStageFilter").addEventListener("change", renderConductScores);
 qs("conductRuleSelect").addEventListener("change", renderConductRuleValue);
 qs("conductMatchButton").addEventListener("click", matchConductRule);
 qs("conductForm").addEventListener("submit", saveConductAdjustment);
+qs("conductRuleForm").addEventListener("submit", saveConductRule);
+qs("conductRuleResetButton").addEventListener("click", () => resetConductRuleForm());
 qs("role").addEventListener("change", () => {
   if (!qs("loginPage").classList.contains("hidden")) return;
   applyRole();
+  renderConductRuleManager();
 });
 
 qs("loginForm").addEventListener("submit", async (event) => {

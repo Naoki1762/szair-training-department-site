@@ -1,0 +1,23 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | 培训部管理后台{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/custom-admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div class="sz-admin-brand">
+  <div class="sz-admin-mark">深</div>
+  <div>
+    <h1 id="site-name"><a href="{% url 'admin:index' %}">深圳航空培训部管理后台</a></h1>
+    <p>人员 · 学员 · 作风分 · 资源库</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block nav-global %}
+<a class="sz-admin-home-link" href="/">返回前台</a>
+{% endblock %}

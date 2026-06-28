@@ -624,7 +624,8 @@ a { color: inherit; }
   justify-content: space-between;
   gap: 14px;
 }
-.student-search {
+.student-search,
+.student-actions select {
   width: min(360px, 100%);
   height: 40px;
   border: 1px solid var(--line);
@@ -635,6 +636,7 @@ a { color: inherit; }
   background: white;
 }
 .student-search:focus,
+.student-actions select:focus,
 .student-access input:focus {
   border-color: rgba(28, 100, 217, .5);
   box-shadow: 0 0 0 3px rgba(28, 100, 217, .08);
@@ -1554,6 +1556,14 @@ a { color: inherit; }
                   <span>同步时间：<strong id="studentSyncedAt">尚未同步</strong></span>
                 </div>
                 <div class="student-actions">
+                  <select id="studentStageFilter" aria-label="阶段筛选">
+                    <option value="all">全部阶段</option>
+                    <option value="S1">S1</option>
+                    <option value="S2">S2</option>
+                    <option value="S3">S3</option>
+                    <option value="S4">S4</option>
+                    <option value="admin">行政人员</option>
+                  </select>
                   <input class="student-search" id="studentSearch" type="search" placeholder="搜索姓名、工号、阶段或岗位" aria-label="搜索在队学员">
                   <button class="btn primary" id="studentRefresh" type="button">同步钉钉人员</button>
                 </div>
@@ -2242,12 +2252,18 @@ function restoreDingTalkSession() {
 
 function renderStudents() {
   const keyword = qs("studentSearch").value.trim().toLowerCase();
-  const filtered = students.filter(student => (
-    student.name.toLowerCase().includes(keyword)
-    || student.jobNumber.toLowerCase().includes(keyword)
-    || student.title.toLowerCase().includes(keyword)
-    || String(student.conductStage || "").toLowerCase().includes(keyword)
-  ));
+  const stage = qs("studentStageFilter").value;
+  const filtered = students.filter(student => {
+    const roleMatched = stage === "all"
+      || (stage === "admin" && student.conductRole === "admin")
+      || student.conductStage === stage;
+    const textMatched = !keyword
+      || student.name.toLowerCase().includes(keyword)
+      || student.jobNumber.toLowerCase().includes(keyword)
+      || student.title.toLowerCase().includes(keyword)
+      || String(student.conductStage || "").toLowerCase().includes(keyword);
+    return roleMatched && textMatched;
+  });
 
   qs("studentTable").innerHTML = filtered.map(student => {
     const avatar = student.avatar
@@ -2309,6 +2325,7 @@ function loadDemoStudents() {
   qs("studentAccessPanel").classList.add("hidden");
   qs("studentListPanel").classList.remove("hidden");
   qs("studentSearch").value = "";
+  qs("studentStageFilter").value = "all";
   setStudentSyncStatus("测试名单", "red");
   renderStudents();
   renderConductScores();
@@ -2340,6 +2357,7 @@ async function loadStudents(force = false) {
     studentsLoaded = true;
     studentDataMode = "dingtalk";
     selectedConductDetailId = "";
+    qs("studentStageFilter").value = "all";
     qs("studentDepartment").textContent = data.departmentName || "飞行学员管理室";
     qs("studentCount").textContent = String(students.length);
     qs("studentSyncedAt").textContent = data.syncedAt
@@ -3113,6 +3131,7 @@ qs("studentAccessForm").addEventListener("submit", (event) => {
   loadStudents();
 });
 qs("studentSearch").addEventListener("input", renderStudents);
+qs("studentStageFilter").addEventListener("change", renderStudents);
 qs("studentRefresh").addEventListener("click", () => {
   if (studentDataMode === "demo") {
     loadDemoStudents();

@@ -1564,6 +1564,7 @@ a { color: inherit; }
                     <option value="S4">S4</option>
                     <option value="admin">行政人员</option>
                   </select>
+                  <span class="pill" id="studentFilteredCount">当前 -- 人</span>
                   <input class="student-search" id="studentSearch" type="search" placeholder="搜索姓名、工号、阶段或岗位" aria-label="搜索在队学员">
                   <button class="btn primary" id="studentRefresh" type="button">同步钉钉人员</button>
                 </div>
@@ -1623,6 +1624,7 @@ a { color: inherit; }
                     <option value="S4">S4</option>
                     <option value="admin">部门行政人员</option>
                   </select>
+                  <span class="pill" id="conductFilteredCount">当前 -- 人</span>
                   <input id="conductSearch" type="search" placeholder="搜索姓名、工号或阶段" aria-label="搜索作风分数">
                 </div>
               </div>
@@ -2265,6 +2267,7 @@ function renderStudents() {
     return roleMatched && textMatched;
   });
 
+  qs("studentFilteredCount").textContent = `当前 ${filtered.length} 人`;
   qs("studentTable").innerHTML = filtered.map(student => {
     const avatar = student.avatar
       ? `<img src="${escapeHtml(student.avatar)}" alt="">`
@@ -2547,6 +2550,7 @@ function renderConductScores() {
     qs("conductTable").innerHTML = "";
     qs("conductStudentCount").textContent = "--";
     qs("conductAdminCount").textContent = "--";
+    qs("conductFilteredCount").textContent = "当前 -- 人";
     qs("conductLedgerStatus").textContent = "等待数据";
     qs("conductEmptyState").classList.remove("hidden");
     return;
@@ -2564,6 +2568,7 @@ function renderConductScores() {
 
   qs("conductStudentCount").textContent = String(learnerRows.length);
   qs("conductAdminCount").textContent = String(adminRows.length);
+  qs("conductFilteredCount").textContent = `当前 ${rows.length} 人`;
   qs("conductLedgerStatus").textContent = `${rows.length} 条`;
 
   qs("conductTable").innerHTML = rows.map(student => {

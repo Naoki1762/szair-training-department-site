@@ -87,6 +87,44 @@ class ConductScoreTests(TestCase):
         student.refresh_from_db()
         self.assertEqual(student.current_score, 98)
 
+    def test_training_manager_can_write_conduct_record_without_extra_flag(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="training-manager", password="pass")
+        PersonProfile.objects.create(
+            user=user,
+            name="培训部管理人员",
+            employee_no="M10005",
+            role=PersonProfile.Role.MANAGER,
+            can_manage_conduct=False,
+            excluded_from_conduct_score=True,
+        )
+        person = PersonProfile.objects.create(
+            name="测试学员",
+            employee_no="A30004",
+            role=PersonProfile.Role.STUDENT,
+            position="飞行学员",
+        )
+        student = StudentProfile.objects.create(person=person, initial_score=100, current_score=100)
+        rule = ConductRule.objects.create(
+            rule_id="rule-manager-role",
+            dimension="训练作风",
+            module="测试",
+            item="测试",
+            title="测试扣分",
+            values=[-2],
+        )
+
+        self.client.login(username="training-manager", password="pass")
+        response = self.client.post(
+            "/api/conduct/records",
+            data={"studentId": str(person.pk), "ruleId": rule.rule_id, "scoreDelta": -2, "reason": "上课早退"},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        student.refresh_from_db()
+        self.assertEqual(student.current_score, 98)
+
     def test_conduct_rules_api_returns_active_rules(self):
         ConductRule.objects.create(
             rule_id="rule-active",

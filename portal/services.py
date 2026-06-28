@@ -35,7 +35,13 @@ def can_manage_conduct(user):
     if user.is_staff or user.is_superuser:
         return True
     person = get_person_for_user(user)
-    return bool(person and person.can_manage_conduct)
+    return bool(
+        person
+        and (
+            person.can_manage_conduct
+            or person.role in {PersonProfile.Role.DEPARTMENT_ADMIN, PersonProfile.Role.MANAGER}
+        )
+    )
 
 
 def can_manage_resources(user):

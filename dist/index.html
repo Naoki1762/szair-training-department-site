@@ -1549,10 +1549,8 @@ a { color: inherit; }
             <div class="card-body">
               <div class="student-toolbar">
                 <div class="student-meta">
-                  <span>基础分：<strong>100</strong></span>
                   <span>学员：<strong id="conductStudentCount">--</strong> 人</span>
                   <span>行政人员：<strong id="conductAdminCount">--</strong> 人</span>
-                  <span>平均分：<strong id="conductAverage">--</strong></span>
                 </div>
                 <div class="score-controls">
                   <select id="conductStageFilter" aria-label="阶段筛选">
@@ -2321,6 +2319,7 @@ function getConductRows() {
   ensureConductModel();
   const keyword = qs("conductSearch").value.trim().toLowerCase();
   const stage = qs("conductStageFilter").value;
+  const stageOrder = { S1: 1, S2: 2, S3: 3, S4: 4 };
   return students.filter(student => {
     const roleMatched = stage === "all"
       || (stage === "admin" && student.conductRole === "admin")
@@ -2331,6 +2330,11 @@ function getConductRows() {
       || String(student.title || "").toLowerCase().includes(keyword)
       || String(student.conductStage || "").toLowerCase().includes(keyword);
     return roleMatched && textMatched;
+  }).sort((left, right) => {
+    const leftStage = left.conductRole === "admin" ? 99 : (stageOrder[left.conductStage] || 98);
+    const rightStage = right.conductRole === "admin" ? 99 : (stageOrder[right.conductStage] || 98);
+    if (leftStage !== rightStage) return leftStage - rightStage;
+    return String(left.jobNumber || "").localeCompare(String(right.jobNumber || ""), "zh-CN", { numeric: true });
   });
 }
 
@@ -2339,7 +2343,6 @@ function renderConductScores() {
     qs("conductTable").innerHTML = "";
     qs("conductStudentCount").textContent = "--";
     qs("conductAdminCount").textContent = "--";
-    qs("conductAverage").textContent = "--";
     qs("conductLedgerStatus").textContent = "等待数据";
     qs("conductEmptyState").classList.remove("hidden");
     return;
@@ -2354,13 +2357,9 @@ function renderConductScores() {
   const rows = getConductRows();
   const learnerRows = students.filter(student => student.conductRole !== "admin");
   const adminRows = students.filter(student => student.conductRole === "admin");
-  const average = learnerRows.length
-    ? learnerRows.reduce((sum, student) => sum + Number(student.conductScore || 0), 0) / learnerRows.length
-    : 0;
 
   qs("conductStudentCount").textContent = String(learnerRows.length);
   qs("conductAdminCount").textContent = String(adminRows.length);
-  qs("conductAverage").textContent = learnerRows.length ? average.toFixed(1) : "--";
   qs("conductLedgerStatus").textContent = `${rows.length} 条`;
 
   qs("conductTable").innerHTML = rows.map(student => {

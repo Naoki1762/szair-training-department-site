@@ -20,7 +20,7 @@ class Command(BaseCommand):
             defaults={"sort_order": 1},
         )
 
-        for index, name in enumerate(["段超", "培训管理岗", "教员用户", "作风管理员"], start=1):
+        for index, name in enumerate(["培训管理岗", "教员用户", "作风管理员"], start=1):
             PersonProfile.objects.update_or_create(
                 employee_no=f"M{index:04d}",
                 defaults={
@@ -62,4 +62,4 @@ class Command(BaseCommand):
                 },
             )
 
-        self.stdout.write(self.style.SUCCESS(f"已生成 {count} 名测试学员和 4 名管理人员。"))
+        self.stdout.write(self.style.SUCCESS(f"已生成 {count} 名测试学员和 3 名管理人员。"))

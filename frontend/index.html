@@ -1452,7 +1452,7 @@ a { color: inherit; }
     </div>
     <nav class="nav" id="nav"></nav>
     <div class="side-user">
-      <div class="side-user-row"><div class="mini-avatar" id="sideAvatar">段</div><div><strong id="sideName">段超</strong><br><small id="sideRole">飞训中心主任</small></div></div>
+      <div class="side-user-row"><div class="mini-avatar" id="sideAvatar">管</div><div><strong id="sideName">培训管理岗</strong><br><small id="sideRole">培训部管理人员</small></div></div>
       <button class="logout" id="logout">退出登录</button>
     </div>
   </aside>
@@ -1846,7 +1846,6 @@ a { color: inherit; }
 <script src="assets/qa-config.js"></script>
 <script>
 const roles = [
-  { id: "duan", name: "段超", role: "飞训中心主任", avatar: "段" },
   { id: "manager", name: "培训管理岗", role: "培训部管理人员", avatar: "管" },
   { id: "teacher", name: "教员用户", role: "培训教员", avatar: "教" },
   { id: "student", name: "学员用户", role: "飞行学员", avatar: "学" }
@@ -2084,7 +2083,7 @@ function qs(id) {
 
 function renderRoleSelect() {
   qs("role").innerHTML = roles.map(role => `<option value="${role.id}">${role.role} · ${role.name}</option>`).join("");
-  qs("role").value = "duan";
+  qs("role").value = "manager";
 }
 
 function applyRole() {
@@ -2391,7 +2390,7 @@ function setStudentSyncStatus(text, tone = "") {
 
 function canManageConduct() {
   const roleId = currentUser?.role || qs("role").value;
-  return ["duan", "manager"].includes(roleId);
+  return ["manager", "department_admin", "admin", "培训部管理人员", "部门行政人员", "行政人员"].includes(roleId);
 }
 
 async function loadConductRules(force = false) {

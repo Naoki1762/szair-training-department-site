@@ -145,6 +145,46 @@ class ConductScoreTests(TestCase):
         payload = response.json()
         self.assertEqual(payload["matches"][0]["rule"]["id"], rule.rule_id)
 
+    def test_conduct_rule_match_prefers_positive_company_contribution(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="conduct-positive-manager", password="pass")
+        PersonProfile.objects.create(
+            user=user,
+            name="作风管理员",
+            employee_no="M10004",
+            role=PersonProfile.Role.MANAGER,
+            can_manage_conduct=True,
+            excluded_from_conduct_score=True,
+        )
+        ConductRule.objects.create(
+            rule_id="rule-neg-company",
+            dimension="日常作风",
+            module="5.日常行为作风",
+            item="违反公司规定",
+            title="违反公司有关规定的",
+            values=[-5],
+        )
+        positive_rule = ConductRule.objects.create(
+            rule_id="rule-pos-company",
+            dimension="日常作风",
+            module="6.加分项",
+            item="公司宣传贡献",
+            title="在公司各类媒体平台发表新闻稿件或文章（每一篇）",
+            values=[3],
+        )
+
+        self.client.login(username="conduct-positive-manager", password="pass")
+        response = self.client.post(
+            "/api/conduct/rules/match",
+            data={"behavior": "帮助公司拍摄新飞机入列仪式"},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["matches"][0]["rule"]["id"], positive_rule.rule_id)
+        self.assertGreater(payload["matches"][0]["rule"]["values"][0], 0)
+
     def test_conduct_rule_can_be_created_updated_and_deactivated(self):
         User = get_user_model()
         user = User.objects.create_user(username="rule-manager", password="pass")

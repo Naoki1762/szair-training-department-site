@@ -779,9 +779,36 @@ a { color: inherit; }
 .score-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .score-actions .btn {
   min-width: 92px;
+}
+.conduct-match-results {
+  display: grid;
+  gap: 8px;
+}
+.conduct-match-option {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdff;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+}
+.conduct-match-option:hover {
+  border-color: #2563eb;
+}
+.conduct-match-option strong {
+  font-size: 13px;
+}
+.conduct-match-option span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 .score-side {
   display: grid;
@@ -1584,6 +1611,12 @@ a { color: inherit; }
                 <span>管理员可在此主页对当前学员作风分进行加减分管理。</span>
               </div>
               <form class="score-form" id="conductForm">
+                <label><span>行为描述</span><textarea id="conductBehavior" placeholder="填写学员具体行为，系统可自动匹配对应加减分制度项目"></textarea></label>
+                <div class="score-actions">
+                  <button class="btn" id="conductMatchButton" type="button">智能匹配</button>
+                  <span class="pill" id="conductMatchStatus">等待描述</span>
+                </div>
+                <div class="conduct-match-results" id="conductMatchResults"></div>
                 <label><span>制度项目</span><select id="conductRuleSelect"></select></label>
                 <label><span>分值</span><select id="conductRuleValue"></select></label>
                 <label><span>补充说明</span><textarea id="conductReason" placeholder="可补充事实经过、信息来源或审批说明"></textarea></label>
@@ -1936,7 +1969,8 @@ const conductStages = {
 };
 
 const conductAdminIndexes = new Set([6, 28, 73, 119, 166, 214, 271]);
-const conductScoreRules = window.CONDUCT_SCORE_RULES || [];
+let conductScoreRules = window.CONDUCT_SCORE_RULES || [];
+let conductRulesLoaded = false;
 
 let activePage = "dashboard";
 let activeResourceSlide = 0;
@@ -2046,6 +2080,7 @@ function enterApp() {
   qs("loginPage").classList.add("hidden");
   qs("app").classList.remove("hidden");
   qs("qaLauncher").classList.remove("hidden");
+  loadConductRules();
   switchPage("dashboard");
 }
 
@@ -2054,7 +2089,7 @@ function applyServerUser(user) {
   const person = user.person || {};
   currentUser = {
     name: person.name || user.username || "系统用户",
-    role: user.permissions?.managePeople ? "manager" : "student",
+    role: user.permissions?.manageConduct || user.permissions?.managePeople ? "manager" : "student",
     roleName: person.roleName || (user.isStaff ? "系统管理员" : "平台用户"),
     permissions: user.permissions || {}
   };
@@ -2251,6 +2286,22 @@ function canManageConduct() {
   return ["duan", "manager"].includes(roleId);
 }
 
+async function loadConductRules(force = false) {
+  if (conductRulesLoaded && !force) return;
+  try {
+    const response = await fetch("/api/conduct/rules", { credentials: "same-origin" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `规则接口返回 ${response.status}`);
+    if (Array.isArray(data.rules) && data.rules.length) {
+      conductScoreRules = data.rules;
+      conductRulesLoaded = true;
+      if (qs("conductRuleSelect")) renderConductRuleSelect();
+    }
+  } catch {
+    conductRulesLoaded = Boolean(conductScoreRules.length);
+  }
+}
+
 function ensureConductModel() {
   const stageKeys = Object.keys(conductStages);
   students = students.map((student, index) => {
@@ -2351,7 +2402,11 @@ function formatSignedScore(value) {
 }
 
 function renderConductRuleSelect() {
-  if (!conductScoreRules.length) return;
+  if (!conductScoreRules.length) {
+    qs("conductRuleSelect").innerHTML = `<option value="">暂无可用制度项目</option>`;
+    qs("conductRuleValue").innerHTML = "";
+    return;
+  }
   const currentRuleId = qs("conductRuleSelect").value || conductScoreRules[0].id;
   const groups = [...new Set(conductScoreRules.map(rule => `${rule.dimension}｜${rule.module}`))];
   qs("conductRuleSelect").innerHTML = groups.map(group => {
@@ -2367,6 +2422,72 @@ function renderConductRuleSelect() {
   if (conductScoreRules.some(rule => rule.id === currentRuleId)) {
     qs("conductRuleSelect").value = currentRuleId;
   }
+  renderConductRuleValue();
+}
+
+function renderConductMatchResults(matches = []) {
+  const container = qs("conductMatchResults");
+  if (!matches.length) {
+    container.innerHTML = "";
+    return;
+  }
+  container.innerHTML = matches.map(match => {
+    const rule = match.rule;
+    const values = rule.values.map(formatSignedScore).join(" / ");
+    return `
+      <button class="conduct-match-option" type="button" data-match-rule="${escapeHtml(rule.id)}">
+        <strong>${escapeHtml(values)}｜${escapeHtml(rule.title)}</strong>
+        <span>${escapeHtml(match.confidence)}% · ${escapeHtml(match.reason)} · ${escapeHtml(rule.dimension)} / ${escapeHtml(rule.module)}</span>
+      </button>
+    `;
+  }).join("");
+}
+
+async function matchConductRule() {
+  if (!canManageConduct()) return;
+  await loadConductRules();
+  const behavior = qs("conductBehavior").value.trim();
+  if (behavior.length < 4) {
+    qs("conductMatchStatus").textContent = "描述过短";
+    qs("conductMatchStatus").className = "pill orange";
+    renderConductMatchResults();
+    return;
+  }
+  qs("conductMatchButton").disabled = true;
+  qs("conductMatchStatus").textContent = "匹配中";
+  qs("conductMatchStatus").className = "pill";
+  try {
+    const response = await fetch("/api/conduct/rules/match", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ behavior })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `匹配接口返回 ${response.status}`);
+    const matches = Array.isArray(data.matches) ? data.matches : [];
+    renderConductMatchResults(matches);
+    if (matches[0]?.rule?.id) {
+      applyConductRuleMatch(matches[0].rule.id);
+      qs("conductReason").value = behavior;
+      qs("conductMatchStatus").textContent = `已匹配 ${matches.length} 项`;
+      qs("conductMatchStatus").className = "pill green";
+    } else {
+      qs("conductMatchStatus").textContent = "未找到";
+      qs("conductMatchStatus").className = "pill orange";
+    }
+  } catch (error) {
+    qs("conductMatchStatus").textContent = "匹配失败";
+    qs("conductMatchStatus").className = "pill red";
+    alert(error.message || "智能匹配失败，请稍后重试。");
+  } finally {
+    qs("conductMatchButton").disabled = false;
+  }
+}
+
+function applyConductRuleMatch(ruleId) {
+  if (!conductScoreRules.some(rule => rule.id === ruleId)) return;
+  qs("conductRuleSelect").value = ruleId;
   renderConductRuleValue();
 }
 
@@ -2474,7 +2595,11 @@ async function saveConductAdjustment(event) {
     if (response.ok && data.student) {
       students = students.map(student => student.userId === studentId ? data.student : student);
       selectedConductDetailId = studentId;
+      qs("conductBehavior").value = "";
       qs("conductReason").value = "";
+      qs("conductMatchStatus").textContent = "等待描述";
+      qs("conductMatchStatus").className = "pill";
+      renderConductMatchResults();
       renderConductRuleValue();
       renderConductScores();
       renderConductPersonDetail();
@@ -2717,6 +2842,13 @@ document.body.addEventListener("click", (event) => {
     switchPage("studentProfile");
     return;
   }
+  const matchRule = event.target.closest("[data-match-rule]");
+  if (matchRule) {
+    applyConductRuleMatch(matchRule.dataset.matchRule || "");
+    qs("conductMatchStatus").textContent = "已选择";
+    qs("conductMatchStatus").className = "pill green";
+    return;
+  }
   const go = event.target.closest("[data-go]");
   if (go) switchPage(go.dataset.go);
   const carousel = event.target.closest("[data-carousel]");
@@ -2760,6 +2892,7 @@ qs("studentDemo").addEventListener("click", loadDemoStudents);
 qs("conductSearch").addEventListener("input", renderConductScores);
 qs("conductStageFilter").addEventListener("change", renderConductScores);
 qs("conductRuleSelect").addEventListener("change", renderConductRuleValue);
+qs("conductMatchButton").addEventListener("click", matchConductRule);
 qs("conductForm").addEventListener("submit", saveConductAdjustment);
 qs("role").addEventListener("change", () => {
   if (!qs("loginPage").classList.contains("hidden")) return;

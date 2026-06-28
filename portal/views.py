@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from urllib.parse import urlencode
 
 from django.contrib.auth import authenticate, login, logout
@@ -133,6 +134,37 @@ def students(request):
             "students": students_data,
         }
     )
+
+
+@require_GET
+def conduct_rules(request):
+    rules = ConductRule.objects.filter(is_active=True).order_by("dimension", "module", "rule_id")
+    return JsonResponse({"rules": [serialize_conduct_rule(rule) for rule in rules]})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def match_conduct_rule(request):
+    if not can_manage_conduct(request.user):
+        return JsonResponse({"error": "没有作风分管理权限"}, status=403)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "请求体不是有效 JSON"}, status=400)
+
+    behavior = str(payload.get("behavior", "")).strip()
+    if len(behavior) < 4:
+        return JsonResponse({"error": "请先填写更完整的行为描述"}, status=400)
+
+    suggestions = suggest_conduct_rules(behavior)
+    audit(
+        request,
+        "conduct.match",
+        summary=f"智能匹配作风规则：{behavior[:40]}",
+        metadata={"behavior": behavior, "matches": [item["rule"]["id"] for item in suggestions]},
+    )
+    return JsonResponse({"matches": suggestions})
 
 
 @csrf_exempt
@@ -351,6 +383,18 @@ def serialize_resource(resource, request):
     }
 
 
+def serialize_conduct_rule(rule):
+    return {
+        "id": rule.rule_id,
+        "dimension": rule.dimension,
+        "module": rule.module,
+        "item": rule.item,
+        "title": rule.title,
+        "values": [int(value) for value in rule.values],
+        "source": rule.source,
+    }
+
+
 def serialize_conduct_record(record):
     value = int(record.score_delta)
     return {
@@ -365,3 +409,60 @@ def serialize_conduct_record(record):
         "operator": record.recorded_by.get_username() if record.recorded_by else "后台管理员",
         "time": record.created_at.strftime("%Y-%m-%d %H:%M:%S"),
     }
+
+
+def suggest_conduct_rules(behavior, limit=5):
+    normalized_behavior = normalize_match_text(behavior)
+    behavior_tokens = set(extract_match_tokens(normalized_behavior))
+    results = []
+    for rule in ConductRule.objects.filter(is_active=True):
+        haystack = normalize_match_text(" ".join([rule.dimension, rule.module, rule.item, rule.title, rule.source]))
+        rule_tokens = set(extract_match_tokens(haystack))
+        overlap = behavior_tokens & rule_tokens
+        direct_bonus = 0
+        for field in [rule.item, rule.title, rule.module, rule.source]:
+            normalized_field = normalize_match_text(field)
+            if normalized_field and (normalized_field in normalized_behavior or normalized_behavior in normalized_field):
+                direct_bonus += 12
+
+        score = len(overlap) * 4 + direct_bonus
+        score += len(set(normalized_behavior) & set(haystack))
+        if score <= 0:
+            continue
+
+        confidence = min(98, max(35, score * 3))
+        reason_words = sorted(overlap, key=len, reverse=True)[:4]
+        reason = "匹配到关键词：" + "、".join(reason_words) if reason_words else "行为描述与规则文本相近"
+        results.append(
+            {
+                "score": score,
+                "confidence": confidence,
+                "reason": reason,
+                "rule": serialize_conduct_rule(rule),
+            }
+        )
+
+    results.sort(key=lambda item: (item["score"], item["confidence"]), reverse=True)
+    return [
+        {
+            "confidence": item["confidence"],
+            "reason": item["reason"],
+            "rule": item["rule"],
+        }
+        for item in results[:limit]
+    ]
+
+
+def normalize_match_text(value):
+    return re.sub(r"\s+", "", str(value or "").lower())
+
+
+def extract_match_tokens(value):
+    tokens = re.findall(r"[a-z0-9]+|[\u4e00-\u9fff]{2,}", value)
+    expanded = []
+    for token in tokens:
+        expanded.append(token)
+        if re.fullmatch(r"[\u4e00-\u9fff]{2,}", token):
+            expanded.extend(token[index : index + 2] for index in range(len(token) - 1))
+            expanded.extend(token[index : index + 3] for index in range(len(token) - 2))
+    return [token for token in expanded if len(token) >= 2]

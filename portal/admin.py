@@ -104,9 +104,22 @@ class StudentProfileAdmin(admin.ModelAdmin):
 @admin.register(ConductRule)
 class ConductRuleAdmin(admin.ModelAdmin):
     list_display = ("rule_id", "dimension", "module", "title", "values", "source", "is_active")
+    list_editable = ("is_active",)
     list_filter = ("dimension", "module", "is_active")
     search_fields = ("rule_id", "dimension", "module", "item", "title", "source")
+    fields = ("rule_id", "dimension", "module", "item", "title", "values", "source", "is_active")
+    actions = ("activate_rules", "deactivate_rules")
     ordering = ("rule_id",)
+
+    @admin.action(description="启用所选作风规则")
+    def activate_rules(self, request, queryset):
+        count = queryset.update(is_active=True)
+        self.message_user(request, f"已启用 {count} 条作风规则。")
+
+    @admin.action(description="停用所选作风规则")
+    def deactivate_rules(self, request, queryset):
+        count = queryset.update(is_active=False)
+        self.message_user(request, f"已停用 {count} 条作风规则。")
 
 
 @admin.register(ConductRecord)

@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
+from unittest import mock
 
-from .models import ConductRecord, ConductRule, Department, PersonProfile, ResourceCategory, StudentProfile, TrainingResource
+from .knowledge_agent import rebuild_document_chunks
+from .models import ConductRecord, ConductRule, Department, KnowledgeDocument, PersonProfile, ResourceCategory, StudentProfile, TrainingResource
 
 
 class StudentApiTests(TestCase):
@@ -303,3 +305,25 @@ class ResourceApiTests(TestCase):
         payload = response.json()
         self.assertEqual(payload["categories"][0]["name"], "制度文件")
         self.assertEqual(payload["resources"][0]["title"], "测试资源")
+
+
+class KnowledgeAgentTests(TestCase):
+    @mock.patch.dict("os.environ", {"DEEPSEEK_API_KEY": "", "LLM_API_KEY": ""})
+    def test_qa_returns_local_knowledge_fallback(self):
+        document = KnowledgeDocument.objects.create(
+            title="学员请假流程",
+            category="学员管理",
+            content="学员请假应提前提交申请，经所在科室管理人员审批后执行。",
+        )
+        rebuild_document_chunks(document)
+
+        response = self.client.post(
+            "/api/qa/ask",
+            data={"question": "学员请假应该怎么处理？"},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertIn("请假", payload["answer"])
+        self.assertEqual(payload["sources"][0]["title"], "学员请假流程")

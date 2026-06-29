@@ -1831,7 +1831,7 @@ a { color: inherit; }
     <div>
       <strong>培训部知识库助手</strong>
       <small>课件标准、教员资质、训练资源与流程问答</small>
-      <a class="qa-kb-link" href="https://ima.qq.com/wiki/?shareId=bbe207edc532702d12be453f0a2a28845c93a77a750806b42ec3922e7400ea00" target="_blank" rel="noopener noreferrer">在 ima 知识库中查看</a>
+      <a class="qa-kb-link" href="/admin/portal/knowledgedocument/" target="_blank" rel="noopener noreferrer">管理知识库</a>
     </div>
     <button class="qa-close" id="qaClose" type="button" aria-label="关闭知识库助手">×</button>
   </div>
@@ -3027,7 +3027,7 @@ function openQaPanel() {
   qs("qaPanel").classList.remove("hidden");
   qs("qaLauncher").setAttribute("aria-expanded", "true");
   if (!qaStarted) {
-    addQaMessage("bot", "你好，我是培训部知识库助手。可以问我课件标准、教员资质、数字资产、训练资源和建设路线相关问题。");
+    addQaMessage("bot", "你好，我是培训部知识库助手。可以问我制度手册、作风分规则、培训资源、教员资质和管理流程相关问题。");
     qaStarted = true;
   }
   warmupKnowledgeBase();

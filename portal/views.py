@@ -12,7 +12,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods, require_safe
 
 from .conduct_agent import ConductBehaviorAgent
-from .models import ConductRecord, ConductRule, LoginAudit, PersonProfile, ResourceCategory, StudentProfile, TrainingResource
+from .knowledge_agent import answer_question
+from .models import ConductRecord, ConductRule, KnowledgeQueryLog, LoginAudit, PersonProfile, ResourceCategory, StudentProfile, TrainingResource
 from .services import audit, can_manage_conduct, can_manage_people, can_manage_resources, get_client_ip, get_person_for_user, get_user_agent
 
 
@@ -104,16 +105,18 @@ def ask_question(request):
     if not question:
         return JsonResponse({"answer": "请先输入问题。", "sources": []})
 
-    for item in DEMO_KNOWLEDGE:
-        if any(keyword in question for keyword in item["keywords"]):
-            return JsonResponse({"answer": item["answer"], "sources": item["sources"]})
-
-    return JsonResponse(
-        {
-            "answer": "Django 版本已接管本地问答入口。当前未配置外部知识库密钥，因此先返回演示知识库答案；后续可继续把原 Node 知识库接口完整迁移到 Django。",
-            "sources": ["Django 本地演示知识库"],
-        }
+    result = answer_question(question, request.user)
+    KnowledgeQueryLog.objects.create(
+        user=request.user if request.user.is_authenticated else None,
+        question=question,
+        answer=result["answer"],
+        sources=result["sources"],
+        model=result["model"],
+        success=not result["error"],
+        error=result["error"],
+        ip_address=get_client_ip(request),
     )
+    return JsonResponse({"answer": result["answer"], "sources": result["sources"], "usedFallback": result["usedFallback"]})
 
 
 @require_GET

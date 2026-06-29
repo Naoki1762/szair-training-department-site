@@ -1,4 +1,5 @@
 asgiref==3.11.1
+certifi==2026.6.17
 Django==5.2.15
 gunicorn==26.0.0
 packaging==26.2

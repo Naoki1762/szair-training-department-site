@@ -275,6 +275,90 @@ class TrainingResource(models.Model):
         return self.title
 
 
+class KnowledgeDocument(models.Model):
+    class Visibility(models.TextChoices):
+        ALL = "all", "全员可问"
+        STAFF = "staff", "管理人员/教员可问"
+        MANAGERS = "managers", "仅管理人员可问"
+
+    title = models.CharField("资料名称", max_length=200)
+    category = models.CharField("知识分类", max_length=80, blank=True)
+    version = models.CharField("版本号", max_length=40, blank=True)
+    effective_date = models.DateField("生效日期", blank=True, null=True)
+    visibility = models.CharField("可见范围", max_length=20, choices=Visibility.choices, default=Visibility.ALL)
+    file = models.FileField("原始文件", upload_to="knowledge_documents/%Y/%m/", blank=True)
+    content = models.TextField("文本内容", blank=True)
+    summary = models.TextField("资料摘要", blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="维护人",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="knowledge_documents",
+    )
+    is_active = models.BooleanField("启用", default=True)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+    updated_at = models.DateTimeField("更新时间", auto_now=True)
+
+    class Meta:
+        ordering = ["category", "title", "-updated_at"]
+        verbose_name = "AI知识库资料"
+        verbose_name_plural = "AI知识库资料"
+
+    def __str__(self):
+        return self.title
+
+
+class KnowledgeChunk(models.Model):
+    document = models.ForeignKey(
+        KnowledgeDocument,
+        verbose_name="所属资料",
+        on_delete=models.CASCADE,
+        related_name="chunks",
+    )
+    title = models.CharField("片段标题", max_length=240, blank=True)
+    content = models.TextField("片段内容")
+    sort_order = models.PositiveIntegerField("顺序", default=0)
+    metadata = models.JSONField("元数据", default=dict, blank=True)
+    created_at = models.DateTimeField("创建时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["document", "sort_order", "id"]
+        verbose_name = "AI知识片段"
+        verbose_name_plural = "AI知识片段"
+
+    def __str__(self):
+        return f"{self.document.title} #{self.sort_order}"
+
+
+class KnowledgeQueryLog(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="提问人",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="knowledge_queries",
+    )
+    question = models.TextField("问题")
+    answer = models.TextField("回答", blank=True)
+    sources = models.JSONField("来源", default=list, blank=True)
+    model = models.CharField("模型", max_length=80, blank=True)
+    success = models.BooleanField("是否成功", default=True)
+    error = models.TextField("错误信息", blank=True)
+    ip_address = models.GenericIPAddressField("IP地址", blank=True, null=True)
+    created_at = models.DateTimeField("提问时间", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "AI问答记录"
+        verbose_name_plural = "AI问答记录"
+
+    def __str__(self):
+        return self.question[:60]
+
+
 class OperationAudit(models.Model):
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,

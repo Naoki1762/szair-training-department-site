@@ -4,6 +4,9 @@ from .models import (
     ConductRecord,
     ConductRule,
     Department,
+    KnowledgeChunk,
+    KnowledgeDocument,
+    KnowledgeQueryLog,
     LoginAudit,
     OperationAudit,
     PersonProfile,
@@ -12,6 +15,7 @@ from .models import (
     SystemSetting,
     TrainingResource,
 )
+from .knowledge_agent import rebuild_document_chunks
 
 
 admin.site.site_header = "深圳航空培训部管理后台"
@@ -175,6 +179,55 @@ class TrainingResourceAdmin(admin.ModelAdmin):
         if not obj.uploaded_by:
             obj.uploaded_by = request.user
         super().save_model(request, obj, form, change)
+
+
+class KnowledgeChunkInline(admin.TabularInline):
+    model = KnowledgeChunk
+    extra = 0
+    fields = ("sort_order", "title", "content")
+    readonly_fields = ()
+
+
+@admin.register(KnowledgeDocument)
+class KnowledgeDocumentAdmin(admin.ModelAdmin):
+    list_display = ("title", "category", "version", "visibility", "is_active", "uploaded_by", "updated_at")
+    list_filter = ("category", "visibility", "is_active")
+    search_fields = ("title", "category", "content", "summary")
+    readonly_fields = ("created_at", "updated_at")
+    inlines = (KnowledgeChunkInline,)
+    actions = ("rebuild_chunks",)
+    ordering = ("category", "title")
+
+    def save_model(self, request, obj, form, change):
+        if not obj.uploaded_by:
+            obj.uploaded_by = request.user
+        super().save_model(request, obj, form, change)
+        rebuild_document_chunks(obj)
+
+    @admin.action(description="重建所选资料的知识片段")
+    def rebuild_chunks(self, request, queryset):
+        total = 0
+        for document in queryset:
+            total += rebuild_document_chunks(document)
+        self.message_user(request, f"已重建 {queryset.count()} 份资料，共 {total} 个知识片段。")
+
+
+@admin.register(KnowledgeChunk)
+class KnowledgeChunkAdmin(admin.ModelAdmin):
+    list_display = ("document", "sort_order", "title", "created_at")
+    list_filter = ("document__category", "document__visibility")
+    search_fields = ("document__title", "title", "content")
+    autocomplete_fields = ("document",)
+    ordering = ("document", "sort_order")
+
+
+@admin.register(KnowledgeQueryLog)
+class KnowledgeQueryLogAdmin(admin.ModelAdmin):
+    list_display = ("question", "user", "model", "success", "created_at")
+    list_filter = ("success", "model", "created_at")
+    search_fields = ("question", "answer", "user__username", "error")
+    readonly_fields = ("user", "question", "answer", "sources", "model", "success", "error", "ip_address", "created_at")
+    ordering = ("-created_at",)
 
 
 @admin.register(OperationAudit)
